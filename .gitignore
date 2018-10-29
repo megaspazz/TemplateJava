@@ -1,0 +1,15 @@
+# Ignore workspace configuration files.
+.vscode/*
+
+# Ignore the compiled binaries.
+bin/
+
+# Ignore everything in the io folder except in.txt, out.txt, and err.txt.
+io/*
+!io/in.txt
+!io/out.txt
+!io/err.txt
+
+# Ignore everything in the src folder except the #hashtag folders.
+src/*
+!src/\#*/
