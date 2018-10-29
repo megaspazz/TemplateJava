@@ -2,7 +2,7 @@
 
 SETLOCAL EnableDelayedExpansion
 
-FOR /f "delims=" %%F IN ('dir /b /s "src\%1.java" 2^>NUL') DO SET filepath=%%F
+FOR /f "delims=" %%F IN ('dir /b /s "java\%1.java" 2^>NUL') DO SET filepath=%%F
 FOR %%F IN (%filepath%) DO SET filename=%%~nF
 
 SET INPUT=io\in.txt
