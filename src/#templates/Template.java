@@ -2,7 +2,7 @@ import java.io.*;
 import java.math.*;
 import java.util.*;
 
-public class Template {
+class Template {
 	public static void solve(FastIO io) {
 
 	}
