@@ -10,7 +10,7 @@ SET OUTPUT=io\out.txt
 SET ERROR=io\err.txt
 
 SET COMPILE=javac "%filepath%" -d "bin"
-SET EXECUTE=java -cp bin "%filename%"
+SET EXECUTE=java -Xss256m -cp bin "%filename%"
 
 IF NOT EXIST "bin\" (
     MKDIR "bin"

@@ -687,6 +687,312 @@ public class Methods {
 		}
 	}
 
+	/**
+	 * Here is a generic Segment Tree implementation.
+	 * It requires a Combiner and DefaultProvider for the custom datatype.
+	 */
+	public static class GenericSegmentTree<T> {
+		public ArrayList<SegmentTreeNode> leaves;
+		public SegmentTreeNode root;
+		public Combiner<T> combiner;
+		public DefaultProvider<T> defaultProvider;
+
+		public GenericSegmentTree(int n, Combiner<T> cmb, DefaultProvider<T> defProv) {
+			this.combiner = cmb;
+			this.defaultProvider = defProv;
+			this.leaves = new ArrayList<SegmentTreeNode>(n);
+			for (int i = 0; i < n; ++i) {
+				this.leaves.add(null);
+			}
+			this.root = new SegmentTreeNode(null, 0, n - 1);
+		}
+
+		public GenericSegmentTree(T[] vals, Combiner<T> cmb, DefaultProvider<T> defProv) {
+			this(vals.length, cmb, defProv);
+			for (int i = 0; i < vals.length; i++) {
+				this.insert(i, vals[i]);
+			}
+		}
+
+		public void insert(int idx, T v) {
+			this.leaves.get(idx).setAndUpdate(v);
+		}
+
+		public T get(int idx) {
+			return this.leaves.get(idx).val;
+		}
+
+		public T get(int lower, int upper) {
+			return this.root.getRange(lower, upper);
+		}
+
+		public static interface Combiner<T> {
+			public T combine(T lhs, T rhs);
+		}
+
+		public static interface DefaultProvider<T> {
+			public T getDefault();
+		}
+
+		private class SegmentTreeNode {
+			public int L;
+			public int R;
+
+			public T val;
+
+			public SegmentTreeNode parent;
+			public SegmentTreeNode left;
+			public SegmentTreeNode rite;
+
+			public SegmentTreeNode(SegmentTreeNode p, int lower, int upper) {
+				this.parent = p;
+				this.L = lower;
+				this.R = upper;
+
+				if (lower == upper) {
+					// access outer class GenericSegmentTree
+					leaves.set(lower, this);
+				} else {
+					int mid = (lower + upper) / 2;
+					this.left = new SegmentTreeNode(this, lower, mid);
+					this.rite = new SegmentTreeNode(this, mid + 1, upper);
+				}
+			}
+
+			public void setAndUpdate(T v) {
+				this.val = v;
+				this.update();
+			}
+
+			public void update() {
+				if (this.left != null && this.rite != null) {
+					// access outer class GenericSegmentTree
+					this.val = combiner.combine(this.left.val, this.rite.val);
+				} else if (this.left != null) {
+					this.val = this.left.val;
+				} else if (this.rite != null) {
+					this.val = this.rite.val;
+				}
+
+				if (this.parent != null) {
+					this.parent.update();
+				}
+			}
+
+			public T getRange(int lower, int upper) {
+				if (this.L >= lower && this.R <= upper) {
+					return this.val;
+				} else if (this.L > upper || this.R < lower) {
+					// access outer class GenericSegmentTree
+					return defaultProvider.getDefault();
+				} else {
+					// access outer class GenericSegmentTree
+					return combiner.combine(this.left.getRange(lower, upper), this.rite.getRange(lower, upper));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Here is a Segment Tree implementation.  It currently does sums of longs.
+	 * It contains multiple values in the leaves.
+	 */
+	public static class LeafArraySegmentTree {
+		private long L;
+		private long R;
+
+		// modify the data-type of this segment tree
+		private long val;
+		private long[] leaf;
+		private int width;
+
+		private LeafArraySegmentTree parent;
+		private LeafArraySegmentTree left;
+		private LeafArraySegmentTree rite;
+
+		public LeafArraySegmentTree(long lo, long hi, int w) {
+			this(lo, hi, w, null);
+		}
+
+		private LeafArraySegmentTree(long lo, long hi, int w, LeafArraySegmentTree p) {
+			this.L = lo;
+			this.R = hi;
+			this.width = w;
+			this.parent = p;
+			if (hi - lo + 1 <= width) {
+				int size = (int) (hi - lo + 1);
+				this.leaf = new long[size];
+			}
+		}
+
+		public LeafArraySegmentTree getLeaf(long k) {
+			if (leaf != null) {
+				return this;
+			}
+			long M = (L + R) >> 1;
+			if (L <= k && k <= M) {
+				if (left == null) {
+					left = new LeafArraySegmentTree(L, M, width, this);
+				}
+				return left.getLeaf(k);
+			} else {
+				if (rite == null) {
+					rite = new LeafArraySegmentTree(M + 1, R, width, this);
+				}
+				return rite.getLeaf(k);
+			}
+		}
+
+		public void increment(long k, long v) {
+			LeafArraySegmentTree ast = getLeaf(k);
+			int offset = (int) (k - ast.L);
+			ast.leaf[offset] += v;
+			ast.val += v;
+			ast = ast.parent;
+			while (ast != null) {
+				ast.val = valueOf(ast.left) + valueOf(ast.rite);
+				ast = ast.parent;
+			}
+		}
+
+		public long get(long k) {
+			return get(k, k);
+		}
+
+		public long get(long lo, long hi) {
+			if (L > hi || R < lo) {
+				return defaultValue();
+			}
+			if (L >= lo && R <= hi) {
+				return val;
+			}
+			if (leaf != null) {
+				long ans = 0;
+				for (int i = 0; i < leaf.length; ++i) {
+					if (lo <= L + i && L + i <= hi) {
+						ans += leaf[i];
+					}
+				}
+				return ans;
+			}
+			return tryGet(left, lo, hi) + tryGet(rite, lo, hi);
+		}
+
+		private static long defaultValue() {
+			return 0;
+		}
+
+		private static long valueOf(LeafArraySegmentTree ast) {
+			if (ast == null) {
+				return defaultValue();
+			}
+			return ast.val;
+		}
+
+		private static long tryGet(LeafArraySegmentTree ast, long lo, long hi) {
+			if (ast == null) {
+				return defaultValue();
+			}
+			return ast.get(lo, hi);
+		}
+	}
+
+	/**
+	 * Here is a Segment Tree implementation.  It currently does sums of longs.
+	 * It lazily initializes the child nodes as they are needed.
+	 */
+	public static class LazySegmentTree {
+		private long L;
+		private long R;
+
+		// modify the data-type of this segment tree
+		private long val;
+
+		private LazySegmentTree parent;
+		private LazySegmentTree left;
+		private LazySegmentTree rite;
+
+		public LazySegmentTree(long lo, long hi) {
+			this(lo, hi, null);
+		}
+
+		private LazySegmentTree(long lo, long hi, LazySegmentTree p) {
+			this.L = lo;
+			this.R = hi;
+			this.parent = p;
+		}
+
+		public LazySegmentTree getLeaf(long k) {
+			if (L == R) {
+				return this;
+			}
+			long M = (L + R) >> 1;
+			if (L <= k && k <= M) {
+				if (left == null) {
+					left = new LazySegmentTree(L, M, this);
+				}
+				return left.getLeaf(k);
+			} else {
+				if (rite == null) {
+					rite = new LazySegmentTree(M + 1, R, this);
+				}
+				return rite.getLeaf(k);
+			}
+		}
+
+		public void set(long k, long v) {
+			LazySegmentTree ast = getLeaf(k);
+			ast.val = v;
+			ast = ast.parent;
+			while (ast != null) {
+				ast.val = valueOf(ast.left) + valueOf(ast.rite);
+				ast = ast.parent;
+			}
+		}
+
+		public void increment(long k, long v) {
+			LazySegmentTree ast = getLeaf(k);
+			ast.val += v;
+			ast = ast.parent;
+			while (ast != null) {
+				ast.val = valueOf(ast.left) + valueOf(ast.rite);
+				ast = ast.parent;
+			}
+		}
+
+		public long get(long k) {
+			return get(k, k);
+		}
+
+		public long get(long lo, long hi) {
+			if (L > hi || R < lo) {
+				return defaultValue();
+			}
+			if (L >= lo && R <= hi) {
+				return val;
+			}
+			return tryGet(left, lo, hi) + tryGet(rite, lo, hi);
+		}
+
+		private static long defaultValue() {
+			return 0;
+		}
+
+		private static long valueOf(LazySegmentTree ast) {
+			if (ast == null) {
+				return defaultValue();
+			}
+			return ast.val;
+		}
+
+		private static long tryGet(LazySegmentTree ast, long lo, long hi) {
+			if (ast == null) {
+				return defaultValue();
+			}
+			return ast.get(lo, hi);
+		}
+	}
+
 	/*
 	 * AVLTreeRangeSum performs arbitrary-length range sums in O(log N) time.
 	 */
@@ -968,7 +1274,8 @@ public class Methods {
 	}
 
 	/**
-	 * Implementation of Segment Tree based on perfect binary tree indexed on an array
+	 * Implementation of Segment Tree based on perfect binary tree indexed on an array.
+	 * NOTE:  This might not actually work, so use at your own risk!
 	 */
 	public static class SegmentTreeArray {
 		public int[] left;
@@ -1028,8 +1335,7 @@ public class Methods {
 			} else if (this.left[idx] > upper || this.rite[idx] < lower) {
 				return 0;
 			} else {
-				return getRangeHelper(getLeftChild(idx), lower, upper)
-						+ getRangeHelper(getRiteChild(idx), lower, upper);
+				return getRangeHelper(getLeftChild(idx), lower, upper) + getRangeHelper(getRiteChild(idx), lower, upper);
 			}
 		}
 
@@ -1719,8 +2025,7 @@ public class Methods {
 				for (int i = 0; i < n; i++) {
 					// condition s1 + len < n simulates 0-symbol at the end of the string
 					// a separate class is created for each suffix followed by 0-symbol
-					rank[sa[i]] = i > 0 && r[sa[i - 1]] == r[sa[i]] && sa[i - 1] + len < n
-							&& r[sa[i - 1] + len / 2] == r[sa[i] + len / 2] ? rank[sa[i - 1]] : i;
+					rank[sa[i]] = i > 0 && r[sa[i - 1]] == r[sa[i]] && sa[i - 1] + len < n && r[sa[i - 1] + len / 2] == r[sa[i] + len / 2] ? rank[sa[i - 1]] : i;
 				}
 				// Suffixes are already sorted by first len characters
 				// Now sort suffixes by first len * 2 characters
@@ -2587,8 +2892,7 @@ public class Methods {
 			if (xl >= xlo && xr <= xhi && yl >= ylo && yr <= yhi) {
 				return val;
 			}
-			return tryGet(topLeft, xlo, xhi, ylo, yhi) + tryGet(topRight, xlo, xhi, ylo, yhi)
-					+ tryGet(botLeft, xlo, xhi, ylo, yhi) + tryGet(botRight, xlo, xhi, ylo, yhi);
+			return tryGet(topLeft, xlo, xhi, ylo, yhi) + tryGet(topRight, xlo, xhi, ylo, yhi) + tryGet(botLeft, xlo, xhi, ylo, yhi) + tryGet(botRight, xlo, xhi, ylo, yhi);
 		}
 
 		private static long defaultValue() {
@@ -2607,6 +2911,127 @@ public class Methods {
 				return defaultValue();
 			}
 			return qt.get(xlo, xhi, ylo, yhi);
+		}
+	}
+
+	/**
+	 * Generic implementation of the Quickselect algorithm for finding the k-th smallest element (zero-indexed).
+	 * Requires a Comparator for the custom datatype.
+	 * A side-effect is:
+	 *   - all elements to the left of the k-th index will be less than or equal to the k-th element.
+	 *   - all elements to the right of the k-th index will be greater than or equal to the k-th element.
+	 */
+	public static class Quickselect {
+		public static <T extends Comparable<T>> T get(T[] A, int k) {
+			return get(A, k, new Comparator<T>() {
+				@Override
+				public int compare(T lhs, T rhs) {
+					return lhs.compareTo(rhs);
+				}
+			});
+		}
+
+		public static <T> T get(T[] A, int k, Comparator<T> cmp) {
+			final int N = A.length;
+			int lowerBound = 0;
+			int upperBound = N - 1;
+			while (lowerBound < upperBound) {
+				int L = lowerBound;
+				int R = upperBound;
+				int M = lowerBound;
+				int w = upperBound - lowerBound + 1;
+				int p = lowerBound + ((((677 * lowerBound + 132241 * upperBound) % w) + w) % w);
+				swap(A, p, L);
+				while (M < R) {
+					int compareAgainstPivot = cmp.compare(A[M + 1], A[M]);
+					if (compareAgainstPivot < 0) {
+						swap(A, M + 1, L);
+						++L;
+						++M;
+					} else if (compareAgainstPivot > 0) {
+						swap(A, M + 1, R);
+						--R;
+					} else {
+						++M;
+					}
+				}
+				if (L <= k && k <= M) {
+					break;
+				}
+				if (k < L) {
+					upperBound = L - 1;
+				} else {
+					lowerBound = M + 1;
+				}
+			}
+			return A[k];
+		}
+
+		private static <T> void swap(T[] A, int i, int j) {
+			T tmp = A[i];
+			A[i] = A[j];
+			A[j] = tmp;
+		}
+	}
+
+	/**
+	 * Uses rolling hash to quickly determine substring equality.
+	 */
+	public static class SubHash {
+		private static final long P = 2147483647;
+		private static final int MAXLEN = 100001;
+
+		private static int UPTO = 1;
+		private static long[] POW26 = new long[MAXLEN];
+		private static long[] INV26 = new long[MAXLEN];
+		static {
+			POW26[0] = 1;
+			POW26[1] = 26;
+			INV26[0] = 1;
+			INV26[1] = modInverse(26, P);
+		}
+
+		private static void loadPows(int upper) {
+			for (int i = UPTO + 1; i <= upper; ++i) {
+				POW26[i] = (POW26[i - 1] * POW26[1]) % P;
+				INV26[i] = (INV26[i - 1] * INV26[1]) % P;
+			}
+			UPTO = Math.max(UPTO, upper);
+		}
+
+		private int[] S;
+		private long[] H;
+
+		public SubHash(String x) {
+			loadPows(x.length());
+			S = new int[x.length()];
+			for (int i = 0; i < x.length(); ++i) {
+				S[i] = x.charAt(i) - 'a';
+			}
+			H = new long[S.length + 1];
+			for (int i = 0; i < S.length; ++i) {
+				H[i + 1] = (H[i] + (S[i] * POW26[i])) % P;
+			}
+		}
+
+		public long sub(int i, int j) {
+			int len = j - i;
+			long diff = (H[j] - H[i] + P) % P;
+			long hash = (diff * INV26[i]) % P;
+			return hash;
+		}
+
+		public int length() {
+			return S.length;
+		}
+
+		public boolean subEqual(int a, int b, int len) {
+			for (int i = 0; i < len; ++i) {
+				if (S[a + i] != S[b + i]) {
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 }

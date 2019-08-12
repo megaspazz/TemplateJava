@@ -2,9 +2,17 @@ import java.io.*;
 import java.math.*;
 import java.util.*;
 
-public class Template {
-	public static void solve(FastIO io) {
+public class TemplateTestCases {
+	public static void solveCase(FastIO io, int testCase) {
 
+	}
+
+	public static void solve(FastIO io) {
+		int T = io.nextInt();
+
+		for (int t = 0; t < T; ++t) {
+			solveCase(io, t);
+		}
 	}
 
 	public static class FastIO {
