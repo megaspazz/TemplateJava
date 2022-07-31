@@ -1047,7 +1047,30 @@ public class Methods {
 			}
 
 			public long get(long lo, long hi) {
-				return getSumLTE(hi) - getSumLTE(lo - 1);
+                AVLTreeNode curr = this;
+                while (curr != null) {
+                    if (lo <= curr.key && curr.key <= hi) {
+                        break;
+                    }
+                    if (hi < curr.key) {
+                        curr = curr.left;
+                    }
+                    if (lo > curr.key) {
+                        curr = curr.right;
+                    }
+                }
+                if (curr == null) {
+                    return 0;
+                }
+                
+                long ans = curr.val;
+                if (curr.left != null) {
+                    ans += curr.left.getSumGTE(lo);
+                }
+                if (curr.right != null) {
+                    ans += curr.right.getSumLTE(hi);
+                }
+                return ans;
 			}
 
 			private AVLTreeNode[] getLeafToRootPath(long k) {
@@ -1120,6 +1143,20 @@ public class Methods {
 				}
 				return sum;
 			}
+            
+            private long getSumGTE(long k) {
+                AVLTreeNode curr = this;
+                long sum = 0;
+                while (curr != null) {
+                    if (k > curr.key) {
+                        curr = curr.right;
+                    } else {
+                        sum += curr.val + getSum(curr.right);
+                        curr = curr.left;
+                    }
+                }
+                return sum;
+            }
 
 			private static AVLTreeNode rebalance(AVLTreeNode node) {
 				if (node == null) {
