@@ -1054,8 +1054,7 @@ public class Methods {
 					}
 					if (hi < curr.key) {
 						curr = curr.left;
-					}
-					if (lo > curr.key) {
+					} else if (lo > curr.key) {
 						curr = curr.right;
 					}
 				}
