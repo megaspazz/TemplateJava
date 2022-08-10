@@ -1261,8 +1261,7 @@ public class Methods {
 					}
 					if (comparer.compare(hi, curr.key) < 0) {
 						curr = curr.left;
-					}
-					if (comparer.compare(lo, curr.key) > 0) {
+					} else if (comparer.compare(lo, curr.key) > 0) {
 						curr = curr.right;
 					}
 				}
@@ -1270,7 +1269,7 @@ public class Methods {
 					return defaultProvider.getDefault();
 				}
 				
-				VT ans = curr.val;
+				VT ans = curr.getVal();
 				if (curr.left != null) {
 					ans = merger.merge(ans, curr.left.getSumGTE(lo));
 				}
@@ -1315,8 +1314,15 @@ public class Methods {
 			}
 
 			private VT computeSum() {
-				sum = merger.merge(val, merger.merge(getSum(left), getSum(right)));
+				sum = merger.merge(getVal(), merger.merge(getSum(left), getSum(right)));
 				return sum;
+			}
+			
+			private VT getVal() {
+				if (val == null) {
+					return defaultProvider.getDefault();
+				}
+				return val;
 			}
 
 			private VT getSumLTE(KT k) {
@@ -1326,7 +1332,7 @@ public class Methods {
 					if (comparer.compare(k, curr.key) < 0) {
 						curr = curr.left;
 					} else {
-						sum = merger.merge(sum, merger.merge(curr.val, getSum(curr.left)));
+						sum = merger.merge(sum, merger.merge(curr.getVal(), getSum(curr.left)));
 						curr = curr.right;
 					}
 				}
@@ -1340,7 +1346,7 @@ public class Methods {
 					if (comparer.compare(k, curr.key) > 0) {
 						curr = curr.right;
 					} else {
-						sum = merger.merge(sum, merger.merge(curr.val, getSum(curr.right)));
+						sum = merger.merge(sum, merger.merge(curr.getVal(), getSum(curr.right)));
 						curr = curr.left;
 					}
 				}
