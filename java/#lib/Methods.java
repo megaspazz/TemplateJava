@@ -200,7 +200,16 @@ public class Methods {
 	 * Computes the value of (b ^ e) % m.
 	 */
 	public static long modPow(long b, long e, long m) {
-		return BigInteger.valueOf(b).modPow(BigInteger.valueOf(e), BigInteger.valueOf(m)).longValue();
+		long p = b % m;
+		long ans = 1;
+		while (e > 0) {
+			if ((e & 1) == 1) {
+				ans = ans * p % m;
+			}
+			p = p * p % m;
+			e >>= 1;
+		}
+		return ans;
 	}
 
 	/**
