@@ -3120,8 +3120,105 @@ public class Methods {
 		}
 	}
 
-	/*
-	 * QuadTree is basically a 2D segment tree for compute range sums.
+	/**
+	 * IntQuadTree is basically a 2D segment tree with int keys for computing range sums.
+	 * It is faster than QuadTree with long keys.
+	 * Note the argument order of function get(int xlo, int xhi, int ylo, int yhi).
+	 */
+	public static class IntQuadTree {
+		public int xl, xr, yl, yr;
+		public long val;
+
+		private IntQuadTree parent;
+		private IntQuadTree topLeft;
+		private IntQuadTree topRight;
+		private IntQuadTree botLeft;
+		private IntQuadTree botRight;
+
+		public IntQuadTree(int xlo, int xhi, int ylo, int yhi, IntQuadTree p) {
+			this.xl = xlo;
+			this.xr = xhi;
+			this.yl = ylo;
+			this.yr = yhi;
+			this.parent = p;
+		}
+
+		public IntQuadTree getLeaf(int x, int y) {
+			if (x == xl && x == xr && y == yl && y == yr) {
+				return this;
+			}
+			int xm = (xl + xr) >> 1;
+			int ym = (yl + yr) >> 1;
+			if (x <= xm) {
+				if (y <= ym) {
+					if (botLeft == null) {
+						botLeft = new IntQuadTree(xl, xm, yl, ym, this);
+					}
+					return botLeft.getLeaf(x, y);
+				} else {
+					if (topLeft == null) {
+						topLeft = new IntQuadTree(xl, xm, ym + 1, yr, this);
+					}
+					return topLeft.getLeaf(x, y);
+				}
+			} else {
+				if (y <= ym) {
+					if (botRight == null) {
+						botRight = new IntQuadTree(xm + 1, xr, yl, ym, this);
+					}
+					return botRight.getLeaf(x, y);
+				} else {
+					if (topRight == null) {
+						topRight = new IntQuadTree(xm + 1, xr, ym + 1, yr, this);
+					}
+					return topRight.getLeaf(x, y);
+				}
+			}
+		}
+
+		public void set(int x, int y, long v) {
+			IntQuadTree qt = getLeaf(x, y);
+			qt.val = v;
+			qt = qt.parent;
+			while (qt != null) {
+				qt.val = valueOf(qt.topLeft) + valueOf(qt.topRight) + valueOf(qt.botLeft) + valueOf(qt.botRight);
+				qt = qt.parent;
+			}
+		}
+
+		public long get(int xlo, int xhi, int ylo, int yhi) {
+			if (xlo > xr || xhi < xl || ylo > yr || yhi < yl) {
+				return defaultValue();
+			}
+			if (xl >= xlo && xr <= xhi && yl >= ylo && yr <= yhi) {
+				return val;
+			}
+			return tryGet(topLeft, xlo, xhi, ylo, yhi) + tryGet(topRight, xlo, xhi, ylo, yhi) + tryGet(botLeft, xlo, xhi, ylo, yhi) + tryGet(botRight, xlo, xhi, ylo, yhi);
+		}
+
+		private static long defaultValue() {
+			return 0;
+		}
+
+		private static long valueOf(IntQuadTree qt) {
+			if (qt == null) {
+				return defaultValue();
+			}
+			return qt.val;
+		}
+
+		private static long tryGet(IntQuadTree qt, int xlo, int xhi, int ylo, int yhi) {
+			if (qt == null) {
+				return defaultValue();
+			}
+			return qt.get(xlo, xhi, ylo, yhi);
+		}
+	}
+
+	/**
+	 * QuadTree is basically a 2D segment tree with long keys for computing range sums.
+	 * It is slower than IntQuadTree with int keys.
+	 * Note the argument order of function get(long xlo, long xhi, long ylo, long yhi).
 	 */
 	public static class QuadTree {
 		public long xl, xr, yl, yr;
