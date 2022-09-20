@@ -3426,4 +3426,94 @@ public class Methods {
 			return true;
 		}
 	}
+
+	/**
+	 * Finds the convex hull of an array of Points.
+	 * Use the `includeCollinear` parameter to choose whether to include collinear points between corner points on the hull.
+	 * Duplicate points are removed.
+	 */
+	public static class ConvexHull {
+		public static long cross(Point O, Point A, Point B) {
+			return (A.X - O.X) * (B.Y - O.Y) - (A.Y - O.Y) * (B.X - O.X);
+		}
+
+		public static Point[] convexHull(Point[] P) {
+			return convexHull(P, false);
+		}
+
+		/**
+		 * For parameter includeCollinear:
+		 *   - If true, points on the hull that are collinear between corner points are included.
+		 *   - If false, it will only include corner points on the hull, removing collinear points between corner points.
+		 */
+		public static Point[] convexHull(Point[] P, boolean includeCollinear) {
+			Point[] output = P;
+			if (P.length > 2) {
+				int n = P.length, k = 0;
+				Point[] H = new Point[2 * n];
+
+				Arrays.sort(P, Point.BY_X_THEN_Y);
+
+				ConvexCheck check = includeCollinear ? INCLUDE_COLLINEAR : EXCLUDE_COLLINEAR;
+
+				// Build lower hull
+				for (int i = 0; i < n; ++i) {
+					while (k >= 2 && check.isConvex(H[k - 2], H[k - 1], P[i]))
+						k--;
+					H[k++] = P[i];
+				}
+
+				// Build upper hull
+				for (int i = n - 2, t = k + 1; i >= 0; i--) {
+					while (k >= t && check.isConvex(H[k - 2], H[k - 1], P[i]))
+						k--;
+					H[k++] = P[i];
+				}
+				if (k > 1) {
+					// Remove non-hull vertices after k; remove k - 1 which is a duplicate.
+					H = Arrays.copyOfRange(H, 0, k - 1);
+				}
+				output = H;
+			}
+			return Arrays.stream(output).distinct().toArray(Point[]::new);
+		}
+
+		public static class Point {
+			public long X, Y;
+
+			public Point(long x, long y) {
+				this.X = x;
+				this.Y = y;
+			}
+
+			public static final Comparator<Point> BY_X_THEN_Y = new Comparator<Point>() {
+				@Override
+				public int compare(Point lhs, Point rhs) {
+					int dx = Long.compare(lhs.X, rhs.X);
+					if (dx != 0) {
+						return dx;
+					}
+					return Long.compare(lhs.Y, rhs.Y);
+				}
+			};
+		}
+
+		private static final ConvexCheck EXCLUDE_COLLINEAR = new ConvexCheck() {
+			@Override
+			public boolean isConvex(Point a, Point b, Point c) {
+				return cross(a, b, c) <= 0;
+			}
+		};
+
+		private static final ConvexCheck INCLUDE_COLLINEAR = new ConvexCheck() {
+			@Override
+			public boolean isConvex(Point a, Point b, Point c) {
+				return cross(a, b, c) < 0;
+			}
+		};
+
+		private static interface ConvexCheck {
+			public boolean isConvex(Point a, Point b, Point c);
+		}
+	}
 }
