@@ -3369,7 +3369,7 @@ public class Methods {
 	/**
 	 * Uses rolling hash to quickly determine substring equality.
 	 */
-	public static class SubHash {
+	public static class SubHashFixed {
 		private static final long P = 2147483647;
 		private static final int MAXLEN = 100001;
 
@@ -3394,7 +3394,7 @@ public class Methods {
 		private int[] S;
 		private long[] H;
 
-		public SubHash(String x) {
+		public SubHashFixed(String x) {
 			loadPows(x.length());
 			S = new int[x.length()];
 			for (int i = 0; i < x.length(); ++i) {
@@ -3424,6 +3424,76 @@ public class Methods {
 				}
 			}
 			return true;
+		}
+	}
+
+	/**
+	 * Uses rolling hash to quickly determine substring equality.
+	 */
+	public static class SubHash {
+		private int[] S;
+		private long[] H;
+		
+		public SubHash(int[] x) {
+			S = x;
+			H = new long[S.length + 1];
+			for (int i = 0; i < S.length; ++i) {
+				H[i + 1] = (H[i] + (S[i] * pow(i))) % MOD;
+			}
+		}
+
+		public SubHash(String x) {
+			this(x.chars().toArray());
+		}
+
+		public long sub(int i, int j) {
+			int len = j - i;
+			long diff = (H[j] - H[i] + MOD) % MOD;
+			long hash = (diff * inv(i)) % MOD;
+			return hash;
+		}
+
+		public int length() {
+			return S.length;
+		}
+
+		public boolean subEqual(int a, int b, int len) {
+			for (int i = 0; i < len; ++i) {
+				if (S[a + i] != S[b + i]) {
+					return false;
+				}
+			}
+			return true;
+		}
+		
+		private static long modInverse(long a, long b) {
+			return BigInteger.valueOf(a).modInverse(BigInteger.valueOf(b)).longValue();
+		}
+		
+		private static final long MOD = 2147483647;
+		private static final long P = 60223;
+
+		private static ArrayList<Long> POW = new ArrayList<>();
+		private static ArrayList<Long> INV = new ArrayList<>();
+		static {
+			POW.add(1L);
+			POW.add(P);
+			INV.add(1L);
+			INV.add(modInverse(P, MOD));
+		}
+		
+		private static long pow(int x) {
+			while (POW.size() <= x) {
+				POW.add(P * POW.get(POW.size() - 1) % MOD);
+			}
+			return POW.get(x);
+		}
+		
+		private static long inv(int x) {
+			while (INV.size() <= x) {
+				INV.add(INV.get(1) * INV.get(INV.size() - 1) % MOD);
+			}
+			return INV.get(x);
 		}
 	}
 
