@@ -2,6 +2,119 @@ import java.math.*;
 import java.util.*;
 
 public class Methods {
+	/**
+	 * Class for computing all unique permutations of an array.
+	 */
+	public static class Permutations {
+		public static <T> List<T[]> objects(T[] arr) {
+			CountMap<T> cm = new CountMap<>();
+			for (T v : arr) {
+				cm.increment(v, 1);
+			}
+			
+			ArrayList<Freq<T>> freq = new ArrayList<>();
+			for (Map.Entry<T, Integer> kvp : cm.entrySet()) {
+				freq.add(new Freq<>(kvp.getKey(), kvp.getValue()));
+			}
+
+			List<List<T>> ans = new ArrayList<>();
+			permute(freq, null, new ArrayList<T>(arr.length), ans);
+
+			List<T[]> perms = new ArrayList<>(ans.size());
+			T[] empty = Arrays.copyOf(arr, 0);
+			for (List<T> lst : ans) {
+				perms.add(lst.toArray(empty));
+			}
+			return perms;
+		}
+
+		public static List<int[]> ints(int[] arr) {
+			Integer[] objs = Arrays.stream(arr).mapToObj(Integer::valueOf).toArray(Integer[]::new);
+			List<Integer[]> perms = objects(objs);
+
+			List<int[]> ans = new ArrayList<>(perms.size());
+			for (Integer[] p : perms) {
+				ans.add(Arrays.stream(p).mapToInt(Integer::intValue).toArray());
+			}
+			return ans;
+		}
+
+		private static <T> void permute(ArrayList<Freq<T>> freq, Freq<T> lastUsed, ArrayList<T> curr, List<List<T>> ans) {
+			if (freq.size() == 1 && Freq.isZero(lastUsed)) {
+				Freq<T> f = freq.get(0);
+				ArrayList<T> lst = new ArrayList<>(curr);
+				lst.addAll(Collections.nCopies(f.count, f.value));
+				ans.add(lst);
+				return;
+			}
+
+			int startIndex = 0;
+			if (!Freq.isZero(lastUsed)) {
+				startIndex = 1;
+				freq.add(lastUsed);
+				swap(freq, 0, freq.size() - 1);
+			}
+
+			for (int i = startIndex; i < freq.size(); ++i) {
+				swap(freq, i, freq.size() - 1);
+				Freq<T> used = freq.remove(freq.size() - 1);
+
+				int origUsedCount = used.count;
+				for (int j = 1; j <= origUsedCount; ++j) {
+					--used.count;
+					curr.add(used.value);
+					permute(freq, used, curr, ans);
+				}
+				for (int j = 1; j <= origUsedCount; ++j) {
+					++used.count;
+					curr.remove(curr.size() - 1);
+				}
+
+				freq.add(used);
+				swap(freq, i, freq.size() - 1);
+			}
+
+			if (startIndex > 0) {
+				swap(freq, 0, freq.size() - 1);
+				freq.remove(freq.size() - 1);
+			}
+		}
+
+		private static class Freq<T> {
+			public T value;
+			public int count;
+
+			public Freq(T value, int count) {
+				this.value = value;
+				this.count = count;
+			}
+
+			public static <T> boolean isZero(Freq<T> f) {
+				return f == null || f.count == 0;
+			}
+		}
+
+		private static <T> void swap(ArrayList<T> lst, int i, int j) {
+			T tmp = lst.get(i);
+			lst.set(i, lst.get(j));
+			lst.set(j, tmp);
+		}
+
+		private static class CountMap<T> extends HashMap<T, Integer> {
+			public int getCount(T k) {
+				return getOrDefault(k, 0);
+			}
+	
+			public void increment(T k, int v) {
+				int next = getCount(k) + v;
+				if (next == 0) {
+					remove(k);
+				} else {
+					put(k, next);
+				}
+			}
+		}
+	}
 
 	/**
 	 * Method for computing combinations.  Returns an array of int[], which contains k elements from { 0, 1, ..., n - 1 }.
