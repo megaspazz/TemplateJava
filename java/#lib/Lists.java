@@ -1,6 +1,9 @@
 import java.util.function.*;
 
 public class Lists {
+	/**
+	  * ArrayList of primitive ints.
+	  */
 	public static class IntList {
 		public int[] arr;
 		public int pos;
@@ -23,6 +26,14 @@ public class Lists {
 				resize(arr.length << 1);
 			}
 			arr[pos++] = x;
+		}
+
+		public void insert(int i, int x) {
+			if (pos >= arr.length) {
+				resize(arr.length << 1);
+			}
+			System.arraycopy(arr, i, arr, i + 1, pos++ - i);
+			arr[i] = x;
 		}
 
 		public int get(int i) {
@@ -48,6 +59,20 @@ public class Lists {
 		public int removeLast() {
 			return arr[--pos];
 		}
+
+		public boolean remove(int x) {
+			for (int i = 0; i < pos; ++i) {
+				if (arr[i] == x) {
+					System.arraycopy(arr, i + 1, arr, i, --pos - i);
+					return true;
+				}
+			}
+			return false;
+		}
+
+		public void removeAt(int i) {
+			System.arraycopy(arr, i + 1, arr, i, --pos - i);
+		}
 		
 		public IntList subList(int fromIndex, int toIndexExclusive) {
 			IntList lst = new IntList();
@@ -60,6 +85,10 @@ public class Lists {
 			for (int i = 0; i < pos; ++i) {
 				consumer.accept(arr[i]);
 			}
+		}
+
+		public int[] toArray() {
+			return Arrays.copyOf(arr, pos);
 		}
 
 		private void resize(int newCapacity) {
