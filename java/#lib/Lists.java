@@ -12,6 +12,11 @@ public class Lists {
 		public IntList() {
 			this(10);
 		}
+		
+		public IntList(IntList other) {
+			this.arr = Arrays.copyOfRange(other.arr, 0, other.pos);
+			this.pos = other.pos;
+		}
 
 		public void add(int x) {
 			if (pos >= arr.length) {
@@ -35,6 +40,21 @@ public class Lists {
 		public int size() {
 			return pos;
 		}
+		
+		public int last() {
+			return arr[pos - 1];
+		}
+		
+		public int removeLast() {
+			return arr[--pos];
+		}
+		
+		public IntList subList(int fromIndex, int toIndexExclusive) {
+			IntList lst = new IntList();
+			lst.arr = Arrays.copyOfRange(arr, fromIndex, toIndexExclusive);
+			lst.pos = toIndexExclusive - fromIndex;
+			return lst;
+		}
 
 		public void forEach(IntConsumer consumer) {
 			for (int i = 0; i < pos; ++i) {
@@ -44,6 +64,13 @@ public class Lists {
 
 		private void resize(int newCapacity) {
 			arr = Arrays.copyOf(arr, newCapacity);
+		}
+		
+		public static IntList of(int... items) {
+			IntList lst = new IntList(items.length);
+			System.arraycopy(items, 0, lst.arr, 0, items.length);
+			lst.pos = items.length;
+			return lst;
 		}
 	}
 }
