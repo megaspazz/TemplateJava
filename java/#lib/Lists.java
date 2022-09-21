@@ -87,16 +87,40 @@ public class Lists {
 		public int[] toArray() {
 			return Arrays.copyOf(arr, pos);
 		}
-
-		private void resize(int newCapacity) {
-			arr = Arrays.copyOf(arr, newCapacity);
-		}
 		
 		public static IntList of(int... items) {
 			IntList lst = new IntList(items.length);
 			System.arraycopy(items, 0, lst.arr, 0, items.length);
 			lst.pos = items.length;
 			return lst;
+		}
+
+		public String join(CharSequence sep) {
+			StringBuilder sb = new StringBuilder();
+			joinToBuffer(sb, sep);
+			return sb.toString();
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append('[');
+			joinToBuffer(sb, ", ");
+			sb.append(']');
+			return sb.toString();
+		}
+
+		private void resize(int newCapacity) {
+			arr = Arrays.copyOf(arr, newCapacity);
+		}
+
+		private void joinToBuffer(StringBuilder sb, CharSequence sep) {
+			for (int i = 0; i < pos; ++i) {
+				if (i > 0) {
+					sb.append(sep);
+				}
+				sb.append(arr[i]);
+			}
 		}
 	}
 }
