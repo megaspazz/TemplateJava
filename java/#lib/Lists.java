@@ -1,9 +1,6 @@
 import java.util.function.*;
 
 public class Lists {
-	/**
-	  * ArrayList of primitive ints.
-	  */
 	public static class IntList {
 		public int[] arr;
 		public int pos;
