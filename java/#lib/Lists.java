@@ -1,4 +1,4 @@
-import java.util.functional.*;
+import java.util.function.*;
 
 public class Lists {
 	public static class IntList {
