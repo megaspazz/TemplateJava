@@ -317,4 +317,260 @@ public class RangeQueries {
 			}
 		}
 	}
+
+	/*
+	 * AVLSegmentTree does generic range operations in O(log N) time.
+	 * See AVLSegmentTree.LongSum for example usage.
+	 * 
+	 * NOTE: If possible, use non-generic versions, since they run significantly faster.
+	 */
+	public static class AVLSegmentTree<KT, VT> {
+		private AVLTreeNode root;
+		
+		private Comparator<KT> comparer;
+		private Merger<VT> merger;
+		private DefaultProvider<VT> defaultProvider;
+		
+		public AVLSegmentTree(KT initKey, Comparator<KT> comparer, Merger<VT> merger, DefaultProvider<VT> defaultProvider) {
+			this.root = new AVLTreeNode(initKey);
+			this.comparer = comparer;
+			this.merger = merger;
+			this.defaultProvider = defaultProvider;
+		}
+
+		public void insert(KT key, VT value) {
+			root.insert(key, value);
+			root = rebalance(root);
+		}
+
+		public VT get(KT k) {
+			return root.get(k);
+		}
+
+		public VT get(KT lo, KT hi) {
+			return root.get(lo, hi);
+		}
+
+		private class AVLTreeNode {
+			private KT key;
+			private VT val;
+			private VT sum;  // more of an accumulator than a true "sum"
+			private int ht;
+
+			private AVLTreeNode left;
+			private AVLTreeNode right;
+
+			public AVLTreeNode(KT key) {
+				this.key = key;
+			}
+
+			public void insert(KT k, VT v) {
+				ArrayList<AVLTreeNode> path = getLeafToRootPath(k);
+				path.get(0).val = v;
+				updatePath(path);
+			}
+
+			public VT get(KT k) {
+				return get(k, k);
+			}
+
+			public VT get(KT lo, KT hi) {
+				AVLTreeNode curr = this;
+				while (curr != null) {
+					if (comparer.compare(lo, curr.key) <= 0 && comparer.compare(curr.key, hi) <= 0) {
+						break;
+					}
+					if (comparer.compare(hi, curr.key) < 0) {
+						curr = curr.left;
+					} else if (comparer.compare(lo, curr.key) > 0) {
+						curr = curr.right;
+					}
+				}
+				if (curr == null) {
+					return defaultProvider.getDefault();
+				}
+				
+				VT ans = curr.getVal();
+				if (curr.left != null) {
+					ans = merger.merge(ans, curr.left.getSumGTE(lo));
+				}
+				if (curr.right != null) {
+					ans = merger.merge(ans, curr.right.getSumLTE(hi));
+				}
+				return ans;
+			}
+
+			private ArrayList<AVLTreeNode> getLeafToRootPath(KT k) {
+				ArrayList<AVLTreeNode> lst = new ArrayList<>();
+				AVLTreeNode curr = this;
+				lst.add(curr);
+				while (comparer.compare(curr.key, k) != 0) {
+					if (comparer.compare(k, curr.key) < 0) {
+						curr = curr.left = getOrCreate(curr.left, k);
+					} else {
+						curr = curr.right = getOrCreate(curr.right, k);
+					}
+					lst.add(curr);
+				}
+				Collections.reverse(lst);
+				return lst;
+			}
+
+			private void updatePath(ArrayList<AVLTreeNode> path) {
+				for (AVLTreeNode node : path) {
+					node.left = rebalance(node.left);
+					node.right = rebalance(node.right);
+					node.update();
+				}
+			}
+
+			private void update() {
+				computeHeight();
+				computeSum();
+			}
+
+			private int computeHeight() {
+				ht = 1 + Math.max(getHeight(left), getHeight(right));
+				return ht;
+			}
+
+			private VT computeSum() {
+				sum = merger.merge(getVal(), merger.merge(getSum(left), getSum(right)));
+				return sum;
+			}
+			
+			private VT getVal() {
+				if (val == null) {
+					return defaultProvider.getDefault();
+				}
+				return val;
+			}
+
+			private VT getSumLTE(KT k) {
+				AVLTreeNode curr = this;
+				VT sum = defaultProvider.getDefault();
+				while (curr != null) {
+					if (comparer.compare(k, curr.key) < 0) {
+						curr = curr.left;
+					} else {
+						sum = merger.merge(sum, merger.merge(curr.getVal(), getSum(curr.left)));
+						curr = curr.right;
+					}
+				}
+				return sum;
+			}
+			
+			private VT getSumGTE(KT k) {
+				AVLTreeNode curr = this;
+				VT sum = defaultProvider.getDefault();
+				while (curr != null) {
+					if (comparer.compare(k, curr.key) > 0) {
+						curr = curr.right;
+					} else {
+						sum = merger.merge(sum, merger.merge(curr.getVal(), getSum(curr.right)));
+						curr = curr.left;
+					}
+				}
+				return sum;
+			}
+
+			private AVLTreeNode getOrCreate(AVLTreeNode node, KT k) {
+				if (node != null) {
+					return node;
+				}
+				return new AVLTreeNode(k);
+			}
+
+			private VT getSum(AVLTreeNode node) {
+				if (node == null) {
+					return defaultProvider.getDefault();
+				}
+				return node.sum;
+			}
+		}
+
+		private int getHeight(AVLTreeNode node) {
+			if (node == null) {
+				return 0;
+			}
+			return node.ht;
+		}
+
+		private int balanceFactor(AVLTreeNode root) {
+			return getHeight(root.left) - getHeight(root.right);
+		}
+
+		private AVLTreeNode rebalance(AVLTreeNode node) {
+			if (node == null) {
+				return null;
+			}
+			int bf = balanceFactor(node);
+			if (bf > 1) {
+				return rotateRight(node);
+			} else if (bf < -1) {
+				return rotateLeft(node);
+			} else {
+				return node;
+			}
+		}
+
+		private AVLTreeNode rotateRight(AVLTreeNode root) {
+			AVLTreeNode pivot = root.left;
+			root.left = pivot.right;
+			pivot.right = root;
+			root.update();
+			pivot.update();
+			return pivot;
+		}
+
+		private AVLTreeNode rotateLeft(AVLTreeNode root) {
+			AVLTreeNode pivot = root.right;
+			root.right = pivot.left;
+			pivot.left = root;
+			root.update();
+			pivot.update();
+			return pivot;
+		}
+		
+		public static interface Merger<T> {
+			public T merge(T a, T b);
+		}
+		
+		public static interface DefaultProvider<T> {
+			public T getDefault();
+		}
+		
+		/*
+		 * Helper class to generate a segment tree that does sum of long values, using long key.
+		 */
+		public static class LongSum extends AVLSegmentTree<Long, Long> {
+			public LongSum() {
+				super(
+					0L,
+					new Comparator<Long>() {
+						@Override
+						public int compare(Long a, Long b) {
+							return Long.compare(a, b);
+						}
+					},
+					new Merger<Long>() {
+						@Override
+						public Long merge(Long a, Long b) {
+							return a + b;
+						}
+					},
+					new DefaultProvider<Long>() {
+						@Override
+						public Long getDefault() {
+							return 0L;
+						}
+					}
+				);
+			}
+			
+			public void increment(long k, long v) {
+				insert(k, get(k) + v);
+			}
+		}
+	}
 }
