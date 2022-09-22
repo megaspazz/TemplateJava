@@ -95,30 +95,51 @@ public class ArraysAndStrings {
 			A[j] = tmp;
 		}
 	}
-
+	
 	public static class Sort {
 		public static int[] ints(int[] A) {
-			Integer[] arr = Arrays.stream(A).mapToObj(Integer::valueOf).toArray(Integer[]::new);
+			final int N = A.length;
+
+			Integer[] arr = new Integer[N];
+			for (int i = 0; i < N; ++i) {
+				arr[i] = A[i];
+			}
+
 			Arrays.sort(arr);
-			for (int i = 0; i < A.length; ++i) {
+
+			for (int i = 0; i < N; ++i) {
 				A[i] = arr[i];
 			}
 			return A;
 		}
 
 		public static long[] longs(long[] A) {
-			Long[] arr = Arrays.stream(A).mapToObj(Long::valueOf).toArray(Long[]::new);
+			final int N = A.length;
+
+			Long[] arr = new Long[N];
+			for (int i = 0; i < N; ++i) {
+				arr[i] = A[i];
+			}
+
 			Arrays.sort(arr);
-			for (int i = 0; i < A.length; ++i) {
+
+			for (int i = 0; i < N; ++i) {
 				A[i] = arr[i];
 			}
 			return A;
 		}
 
 		public static double[] doubles(double[] A) {
-			Double[] arr = Arrays.stream(A).mapToObj(Double::valueOf).toArray(Double[]::new);
+			final int N = A.length;
+
+			Double[] arr = new Double[N];
+			for (int i = 0; i < N; ++i) {
+				arr[i] = A[i];
+			}
+
 			Arrays.sort(arr);
-			for (int i = 0; i < A.length; ++i) {
+
+			for (int i = 0; i < N; ++i) {
 				A[i] = arr[i];
 			}
 			return A;
