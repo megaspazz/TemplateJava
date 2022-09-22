@@ -3,13 +3,14 @@ import java.util.*;
 public class Graphs {
 	/**
 	 * Finds an Eulerian path in a graph, if one exists.
-	 * 
-	 * EXAMPLE USAGE:
-	 *   EulerianPath.Graph g = new EulerianPath.Graph(numNodes);
-	 *   g.addDirectedEdge(a, b);
-	 *   g.addDirectedEdge(u, v);
-	 *   g.addDirectedEdge(x, y);
-	 *   int[] order = EulerianPath.getNodeOrder(g);
+	 */
+	// EXAMPLE USAGE:
+	/*
+		EulerianPath.Graph g = new EulerianPath.Graph(numNodes);
+		g.addDirectedEdge(a, b);
+		g.addDirectedEdge(u, v);
+		g.addDirectedEdge(x, y);
+		int[] order = EulerianPath.getNodeOrder(g);
 	 */
 	public static class EulerianPath {
 		public static int[] getNodeOrder(Graph g) {
