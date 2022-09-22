@@ -145,4 +145,77 @@ public class ArraysAndStrings {
 			return A;
 		}
 	}
+	
+	/**
+	 * Generic binary search to find the first or last value resulting in a matching condition.
+	 */
+	// EXAMPLE USAGE (find insertion index in sorted array `A`):
+	/*
+		int insertionIndex = BinarySearch.firstThat(0, A.length, new BinarySearch.IntCheck() {
+			@Override
+			public boolean valid(int index) {
+				return A[index] > mid;
+			}
+		});
+	 */
+	public static class BinarySearch {
+		// Finds the left-most value that satisfies the IntCheck in the range [L, R).
+		// It will return R if the nothing in the range satisfies the check.
+		public static int firstThat(int L, int R, IntCheck check) {
+			while (L < R) {
+				int M = (L >> 1) + (R >> 1) + (L & R & 1);
+				if (check.valid(M)) {
+					R = M;
+				} else {
+					L = M + 1;
+				}
+			}
+			return L;
+		}
+
+		// Finds the right-most value that satisfies the IntCheck in the range [L, R).
+		// It will return L - 1 if nothing in the range satisfies the check.
+		public static int lastThat(int L, int R, IntCheck check) {
+			int firstValue = firstThat(L, R, new IntCheck() {
+				@Override
+				public boolean valid(int value) {
+					return !check.valid(value);
+				}
+			});
+			return firstValue - 1;
+		}
+
+		// Finds the left-most value that satisfies the LongCheck in the range [L, R).
+		public static long firstThat(long L, long R, LongCheck check) {
+			while (L < R) {
+				long M = (L >> 1) + (R >> 1) + (L & R & 1);
+				if (check.valid(M)) {
+					R = M;
+				} else {
+					L = M + 1;
+				}
+			}
+			return L;
+		}
+
+		// Finds the right-most value that satisfies the IntCheck in the range [L, R).
+		// It will return L - 1 if nothing in the range satisfies the check.
+		public static long lastThat(long L, long R, LongCheck check) {
+			long firstValue = firstThat(L, R, new LongCheck() {
+				@Override
+				public boolean valid(long value) {
+					return !check.valid(value);
+				}
+			});
+			return firstValue - 1;
+		}
+
+		public static interface LongCheck {
+			public boolean valid(long value);
+		}
+
+		public static interface IntCheck {
+			public boolean valid(int value);
+		}
+	}
 }
