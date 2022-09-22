@@ -95,4 +95,33 @@ public class ArraysAndStrings {
 			A[j] = tmp;
 		}
 	}
+
+	public static class Sort {
+		public static int[] ints(int[] A) {
+			Integer[] arr = Arrays.stream(A).mapToObj(Integer::valueOf).toArray(Integer[]::new);
+			Arrays.sort(arr);
+			for (int i = 0; i < A.length; ++i) {
+				A[i] = arr[i];
+			}
+			return A;
+		}
+
+		public static long[] longs(long[] A) {
+			Long[] arr = Arrays.stream(A).mapToObj(Long::valueOf).toArray(Long[]::new);
+			Arrays.sort(arr);
+			for (int i = 0; i < A.length; ++i) {
+				A[i] = arr[i];
+			}
+			return A;
+		}
+
+		public static double[] doubles(double[] A) {
+			Double[] arr = Arrays.stream(A).mapToObj(Double::valueOf).toArray(Double[]::new);
+			Arrays.sort(arr);
+			for (int i = 0; i < A.length; ++i) {
+				A[i] = arr[i];
+			}
+			return A;
+		}
+	}
 }
