@@ -107,7 +107,7 @@ public class Lists {
 			sb.append('[');
 			joinToBuffer(sb, ", ");
 			sb.append(']');
-			return sb.toString();
+			return sb.toString();  // delete this
 		}
 
 		private void resize(int newCapacity) {
