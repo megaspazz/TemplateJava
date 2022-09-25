@@ -113,6 +113,127 @@ public class RangeQueries {
 		}
 	}
 
+	/**
+	 * Here is a generic Segment Tree implementation.
+	 * It requires a Combiner to define how to merge values.
+	 * It takes an optional DefaultProvider to replace null values; otherwise, the Combiner will need to manually handle null values.
+	 */
+	public static class GenericSegmentTree<T> {
+		public ArrayList<SegmentTreeNode> leaves;
+		public SegmentTreeNode root;
+		public Combiner<T> combiner;
+		public DefaultProvider<T> defaultProvider;
+
+		public GenericSegmentTree(int n, Combiner<T> cmb) {
+			this(n, cmb, null);
+		}
+
+		public GenericSegmentTree(int n, Combiner<T> cmb, DefaultProvider<T> defProv) {
+			this.combiner = cmb;
+			this.defaultProvider = defProv;
+			this.leaves = new ArrayList<SegmentTreeNode>(n);
+			for (int i = 0; i < n; ++i) {
+				this.leaves.add(null);
+			}
+			this.root = new SegmentTreeNode(null, 0, n - 1);
+		}
+
+		public GenericSegmentTree(T[] vals, Combiner<T> cmb, DefaultProvider<T> defProv) {
+			this(vals.length, cmb, defProv);
+			for (int i = 0; i < vals.length; i++) {
+				this.insert(i, vals[i]);
+			}
+		}
+
+		public void insert(int idx, T v) {
+			this.leaves.get(idx).setAndUpdate(v);
+		}
+
+		public T get(int idx) {
+			return this.leaves.get(idx).val;
+		}
+
+		public T get(int lowerInclusive, int upperInclusive) {
+			return this.root.getRange(lowerInclusive, upperInclusive);
+		}
+
+		public static interface Combiner<T> {
+			public T combine(T lhs, T rhs);
+		}
+
+		public static interface DefaultProvider<T> {
+			public T getDefault();
+		}
+
+		private class SegmentTreeNode {
+			public int L;
+			public int R;
+
+			public T val;
+
+			public SegmentTreeNode parent;
+			public SegmentTreeNode left;
+			public SegmentTreeNode rite;
+
+			public SegmentTreeNode(SegmentTreeNode p, int lower, int upper) {
+				this.parent = p;
+				this.L = lower;
+				this.R = upper;
+
+				if (lower == upper) {
+					// access outer class GenericSegmentTree
+					leaves.set(lower, this);
+				} else {
+					int mid = (lower + upper) / 2;
+					this.left = new SegmentTreeNode(this, lower, mid);
+					this.rite = new SegmentTreeNode(this, mid + 1, upper);
+				}
+			}
+
+			public void setAndUpdate(T v) {
+				this.val = v;
+				this.update();
+			}
+
+			public void update() {
+				if (this.left != null && this.rite != null) {
+					// access outer class GenericSegmentTree
+					this.val = combiner.combine(this.left.getValueOrDefault(), this.rite.getValueOrDefault());
+				} else if (this.left != null) {
+					this.val = this.left.getValueOrDefault();
+				} else if (this.rite != null) {
+					this.val = this.rite.getValueOrDefault();
+				}
+
+				if (this.parent != null) {
+					this.parent.update();
+				}
+			}
+
+			public T getRange(int lower, int upper) {
+				if (this.L >= lower && this.R <= upper) {
+					return getValueOrDefault();
+				} else if (this.L > upper || this.R < lower) {
+					// access outer class GenericSegmentTree
+					return defaultProvider.getDefault();
+				} else {
+					// access outer class GenericSegmentTree
+					return combiner.combine(this.left.getRange(lower, upper), this.rite.getRange(lower, upper));
+				}
+			}
+			
+			private T getValueOrDefault() {
+				if (val != null) {
+					return val;
+				}
+				if (defaultProvider != null) {
+					return defaultProvider.getDefault();
+				}
+				return null;
+			}
+		}
+	}
+
 	/*
 	 * AVLTreeRangeSum performs arbitrary-length range sums in O(log N) time.
 	 */
