@@ -694,7 +694,7 @@ public class RangeQueries {
 			}
 		}
 	}
-	
+
 	/**
 	 * PrimitiveAVLSegmentTree does generic range operations in O(log N) time.
 	 * Use your editor's find-and-replace to rename the types into primitives, since Java doesn't support generics of primitives.
@@ -763,9 +763,19 @@ public class RangeQueries {
 			}
 
 			public void insert(PrimitiveKeyType k, PrimitiveValueType v) {
-				ArrayList<AVLTreeNode> path = getLeafToRootPath(k);
-				path.get(0).val = v;
-				updatePath(path);
+				int c = compareKey(k, key);
+				if (c < 0) {
+					left = getOrCreate(left, k);
+					left.insert(k, v);
+				} else if (c > 0) {
+					right = getOrCreate(right, k);
+					right.insert(k, v);
+				} else {
+					val = v;
+				}
+				left = rebalance(left);
+				right = rebalance(right);
+				update();
 			}
 
 			public PrimitiveValueType get(PrimitiveKeyType k) {
@@ -796,30 +806,6 @@ public class RangeQueries {
 					ans = mergeValue(ans, curr.right.getSumLTE(hi));
 				}
 				return ans;
-			}
-
-			private ArrayList<AVLTreeNode> getLeafToRootPath(PrimitiveKeyType k) {
-				ArrayList<AVLTreeNode> lst = new ArrayList<>();
-				AVLTreeNode curr = this;
-				lst.add(curr);
-				while (compareKey(curr.key, k) != 0) {
-					if (compareKey(k, curr.key) < 0) {
-						curr = curr.left = getOrCreate(curr.left, k);
-					} else {
-						curr = curr.right = getOrCreate(curr.right, k);
-					}
-					lst.add(curr);
-				}
-				Collections.reverse(lst);
-				return lst;
-			}
-
-			private void updatePath(ArrayList<AVLTreeNode> path) {
-				for (AVLTreeNode node : path) {
-					node.left = rebalance(node.left);
-					node.right = rebalance(node.right);
-					node.update();
-				}
 			}
 
 			private void update() {
