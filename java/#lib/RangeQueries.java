@@ -234,7 +234,7 @@ public class RangeQueries {
 		}
 	}
 
-	/*
+	/**
 	 * AVLTreeRangeSum performs arbitrary-length range sums in O(log N) time.
 	 */
 	public static class AVLTreeRangeSum {
@@ -257,7 +257,7 @@ public class RangeQueries {
 		public long get(long lo, long hi) {
 			return root.get(lo, hi);
 		}
-
+		
 		public static class AVLTreeNode {
 			private long key;
 			private long val;
@@ -272,15 +272,33 @@ public class RangeQueries {
 			}
 
 			public void insert(long k, long v) {
-				AVLTreeNode[] path = getLeafToRootPath(k);
-				path[0].val = v;
-				updatePath(path);
+				if (k < key) {
+					left = getOrCreate(left, k);
+					left.insert(k, v);
+				} else if (k > key) {
+					right = getOrCreate(right, k);
+					right.insert(k, v);
+				} else {
+					val = v;
+				}
+				left = rebalance(left);
+				right = rebalance(right);
+				update();
 			}
 
 			public void increment(long k, long v) {
-				AVLTreeNode[] path = getLeafToRootPath(k);
-				path[0].val += v;
-				updatePath(path);
+				if (k < key) {
+					left = getOrCreate(left, k);
+					left.increment(k, v);
+				} else if (k > key) {
+					right = getOrCreate(right, k);
+					right.increment(k, v);
+				} else {
+					val += v;
+				}
+				left = rebalance(left);
+				right = rebalance(right);
+				update();
 			}
 
 			public long get(long k) {
@@ -313,22 +331,6 @@ public class RangeQueries {
 				return ans;
 			}
 
-			private AVLTreeNode[] getLeafToRootPath(long k) {
-				ArrayList<AVLTreeNode> lst = new ArrayList<>();
-				AVLTreeNode curr = this;
-				lst.add(curr);
-				while (curr.key != k) {
-					if (k < curr.key) {
-						curr = curr.left = getOrCreate(curr.left, k);
-					} else {
-						curr = curr.right = getOrCreate(curr.right, k);
-					}
-					lst.add(curr);
-				}
-				Collections.reverse(lst);
-				return lst.toArray(new AVLTreeNode[0]);
-			}
-
 			private static AVLTreeNode rotateRight(AVLTreeNode root) {
 				AVLTreeNode pivot = root.left;
 				root.left = pivot.right;
@@ -345,14 +347,6 @@ public class RangeQueries {
 				root.update();
 				pivot.update();
 				return pivot;
-			}
-
-			private static void updatePath(AVLTreeNode[] path) {
-				for (AVLTreeNode node : path) {
-					node.left = rebalance(node.left);
-					node.right = rebalance(node.right);
-					node.update();
-				}
 			}
 
 			private void update() {
