@@ -694,4 +694,233 @@ public class RangeQueries {
 			}
 		}
 	}
+	
+	/**
+	 * PrimitiveAVLSegmentTree does generic range operations in O(log N) time.
+	 * Use your editor's find-and-replace to rename the types into primitives, since Java doesn't support generics of primitives.
+	 */
+	public static class PrimitiveAVLSegmentTree {
+		// Placeholder types so that the class will compile.
+		// Delete these after doing find-and-replace.
+		private static final class PrimitiveKeyType {}
+		private static final class PrimitiveValueType {}
+		
+		// Implement the key comparison function, return type should be same as Comparator.compare.
+		private static int compareKey(PrimitiveKeyType a, PrimitiveKeyType b) {
+			throw new UnsupportedOperationException("Not implemented yet.");
+			
+			// Example implementation for natural ordering of long keys.
+			// return Long.compare(a, b);
+		}
+		
+		// Implement the value merge function.
+		private static PrimitiveValueType mergeValue(PrimitiveValueType a, PrimitiveValueType b) {
+			throw new UnsupportedOperationException("Not implemented yet.");
+			
+			// Example implementation for sum.
+			// return a + b;
+		}
+		
+		// The default value if nothing in range.
+		private static PrimitiveValueType DEFAULT_VALUE = null;
+		
+		private AVLTreeNode root;
+
+		public void insert(PrimitiveKeyType key, PrimitiveValueType value) {
+			if (root == null) {
+				root = new AVLTreeNode(key);
+			}
+			root.insert(key, value);
+			root = rebalance(root);
+		}
+
+		public PrimitiveValueType get(PrimitiveKeyType k) {
+			if (root == null) {
+				return DEFAULT_VALUE;
+			}
+			return root.get(k);
+		}
+
+		public PrimitiveValueType get(PrimitiveKeyType lo, PrimitiveKeyType hi) {
+			if (root == null) {
+				return DEFAULT_VALUE;
+			}
+			return root.get(lo, hi);
+		}
+
+		private static class AVLTreeNode {
+			private PrimitiveKeyType key;
+			private PrimitiveValueType val;
+			private PrimitiveValueType sum;  // more of an accumulator than a true "sum"
+			private int ht;
+
+			private AVLTreeNode left;
+			private AVLTreeNode right;
+
+			public AVLTreeNode(PrimitiveKeyType key) {
+				this.key = key;
+				this.val = DEFAULT_VALUE;
+			}
+
+			public void insert(PrimitiveKeyType k, PrimitiveValueType v) {
+				ArrayList<AVLTreeNode> path = getLeafToRootPath(k);
+				path.get(0).val = v;
+				updatePath(path);
+			}
+
+			public PrimitiveValueType get(PrimitiveKeyType k) {
+				return get(k, k);
+			}
+
+			public PrimitiveValueType get(PrimitiveKeyType lo, PrimitiveKeyType hi) {
+				AVLTreeNode curr = this;
+				while (curr != null) {
+					if (compareKey(lo, curr.key) <= 0 && compareKey(curr.key, hi) <= 0) {
+						break;
+					}
+					if (compareKey(hi, curr.key) < 0) {
+						curr = curr.left;
+					} else if (compareKey(lo, curr.key) > 0) {
+						curr = curr.right;
+					}
+				}
+				if (curr == null) {
+					return DEFAULT_VALUE;
+				}
+				
+				PrimitiveValueType ans = curr.val;
+				if (curr.left != null) {
+					ans = mergeValue(ans, curr.left.getSumGTE(lo));
+				}
+				if (curr.right != null) {
+					ans = mergeValue(ans, curr.right.getSumLTE(hi));
+				}
+				return ans;
+			}
+
+			private ArrayList<AVLTreeNode> getLeafToRootPath(PrimitiveKeyType k) {
+				ArrayList<AVLTreeNode> lst = new ArrayList<>();
+				AVLTreeNode curr = this;
+				lst.add(curr);
+				while (compareKey(curr.key, k) != 0) {
+					if (compareKey(k, curr.key) < 0) {
+						curr = curr.left = getOrCreate(curr.left, k);
+					} else {
+						curr = curr.right = getOrCreate(curr.right, k);
+					}
+					lst.add(curr);
+				}
+				Collections.reverse(lst);
+				return lst;
+			}
+
+			private void updatePath(ArrayList<AVLTreeNode> path) {
+				for (AVLTreeNode node : path) {
+					node.left = rebalance(node.left);
+					node.right = rebalance(node.right);
+					node.update();
+				}
+			}
+
+			private void update() {
+				computeHeight();
+				computeSum();
+			}
+
+			private int computeHeight() {
+				ht = 1 + Math.max(getHeight(left), getHeight(right));
+				return ht;
+			}
+
+			private PrimitiveValueType computeSum() {
+				sum = mergeValue(val, mergeValue(getSum(left), getSum(right)));
+				return sum;
+			}
+
+			private PrimitiveValueType getSumLTE(PrimitiveKeyType k) {
+				AVLTreeNode curr = this;
+				PrimitiveValueType sum = DEFAULT_VALUE;
+				while (curr != null) {
+					if (compareKey(k, curr.key) < 0) {
+						curr = curr.left;
+					} else {
+						sum = mergeValue(sum, mergeValue(curr.val, getSum(curr.left)));
+						curr = curr.right;
+					}
+				}
+				return sum;
+			}
+			
+			private PrimitiveValueType getSumGTE(PrimitiveKeyType k) {
+				AVLTreeNode curr = this;
+				PrimitiveValueType sum = DEFAULT_VALUE;
+				while (curr != null) {
+					if (compareKey(k, curr.key) > 0) {
+						curr = curr.right;
+					} else {
+						sum = mergeValue(sum, mergeValue(curr.val, getSum(curr.right)));
+						curr = curr.left;
+					}
+				}
+				return sum;
+			}
+
+			private AVLTreeNode getOrCreate(AVLTreeNode node, PrimitiveKeyType k) {
+				if (node != null) {
+					return node;
+				}
+				return new AVLTreeNode(k);
+			}
+
+			private PrimitiveValueType getSum(AVLTreeNode node) {
+				if (node == null) {
+					return DEFAULT_VALUE;
+				}
+				return node.sum;
+			}
+		}
+
+		private static int getHeight(AVLTreeNode node) {
+			if (node == null) {
+				return 0;
+			}
+			return node.ht;
+		}
+
+		private static int balanceFactor(AVLTreeNode root) {
+			return getHeight(root.left) - getHeight(root.right);
+		}
+
+		private static AVLTreeNode rebalance(AVLTreeNode node) {
+			if (node == null) {
+				return null;
+			}
+			int bf = balanceFactor(node);
+			if (bf > 1) {
+				return rotateRight(node);
+			} else if (bf < -1) {
+				return rotateLeft(node);
+			} else {
+				return node;
+			}
+		}
+
+		private static AVLTreeNode rotateRight(AVLTreeNode root) {
+			AVLTreeNode pivot = root.left;
+			root.left = pivot.right;
+			pivot.right = root;
+			root.update();
+			pivot.update();
+			return pivot;
+		}
+
+		private static AVLTreeNode rotateLeft(AVLTreeNode root) {
+			AVLTreeNode pivot = root.right;
+			root.right = pivot.left;
+			pivot.left = root;
+			root.update();
+			pivot.update();
+			return pivot;
+		}
+	}
 }
