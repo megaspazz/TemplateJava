@@ -12,7 +12,7 @@ public class Lists {
 		public IntList() {
 			this(10);
 		}
-		
+
 		public IntList(IntList other) {
 			this.arr = Arrays.copyOfRange(other.arr, 0, other.pos);
 			this.pos = other.pos;
@@ -48,19 +48,31 @@ public class Lists {
 		public int size() {
 			return pos;
 		}
-		
+
+		public boolean isEmpty() {
+			return pos == 0;
+		}
+
 		public int last() {
 			return arr[pos - 1];
 		}
-		
+
 		public int removeLast() {
 			return arr[--pos];
+		}
+
+		public void push(int x) {
+			add(x);
+		}
+
+		public int pop() {
+			return removeLast();
 		}
 
 		public boolean remove(int x) {
 			for (int i = 0; i < pos; ++i) {
 				if (arr[i] == x) {
-					System.arraycopy(arr, i + 1, arr, i, --pos - i);
+					removeAt(i);
 					return true;
 				}
 			}
@@ -70,7 +82,7 @@ public class Lists {
 		public void removeAt(int i) {
 			System.arraycopy(arr, i + 1, arr, i, --pos - i);
 		}
-		
+
 		public IntList subList(int fromIndex, int toIndexExclusive) {
 			IntList lst = new IntList();
 			lst.arr = Arrays.copyOfRange(arr, fromIndex, toIndexExclusive);
@@ -87,7 +99,7 @@ public class Lists {
 		public int[] toArray() {
 			return Arrays.copyOf(arr, pos);
 		}
-		
+
 		public static IntList of(int... items) {
 			IntList lst = new IntList(items.length);
 			System.arraycopy(items, 0, lst.arr, 0, items.length);
