@@ -140,4 +140,30 @@ public class Combinatorics {
 			return modPow(a, MOD - 2);
 		}
 	}
+
+	/**
+	 * Computes all the primes up to the specified number.
+	 */
+	public static int[] primesTo(int n) {
+		ArrayList<Integer> primes = new ArrayList<Integer>();
+
+		boolean[] prime = new boolean[n + 1];
+		Arrays.fill(prime, 2, n + 1, true);
+		for (int i = 2; i < prime.length; i++) {
+			if (prime[i]) {
+				primes.add(i);
+				if ((long) i * i <= n) {
+					for (int j = i * i; j < prime.length; j += i) {
+						prime[j] = false;
+					}
+				}
+			}
+		}
+
+		int[] ans = new int[primes.size()];
+		for (int i = 0; i < ans.length; ++i) {
+			ans[i] = primes.get(i);
+		}
+		return ans;
+	}
 }
