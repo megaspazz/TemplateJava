@@ -28,6 +28,35 @@ public class Combinatorics {
 		return F[n] * FI[k] % MOD * FI[n - k] % MOD;
 	}
 
+	public static int gcd(int... arr) {
+		int g = 0;
+		for (int x : arr) {
+			g = gcd(g, x);
+		}
+		return g;
+	}
+
+	/**
+	 * Computes the GCD (greatest common denominator) between two numbers.
+	 * NOTE: Only works with non-negative numbers!
+	 */
+	public static int gcd(int a, int b) {
+		if (a < b) {
+			return gcd(b, a);
+		}
+
+		if (b == 0) {
+			return a;
+		}
+
+		int r = a % b;
+		if (r == 0) {
+			return b;
+		}
+
+		return gcd(b, r);
+	}
+
 	/**
 	 * Computes the LCM (least common multiple) between all the numbers.
 	 * NOTE:  Only works with non-negative numbers!
@@ -40,9 +69,17 @@ public class Combinatorics {
 		return ans;
 	}
 
+	public static long gcd(long... arr) {
+		long g = 0;
+		for (long x : arr) {
+			g = gcd(g, x);
+		}
+		return g;
+	}
+
 	/**
 	 * Computes the GCD (greatest common denominator) between two numbers.
-	 * NOTE:  Only works with non-negative numbers!
+	 * NOTE: Only works with non-negative numbers!
 	 */
 	public static long gcd(long a, long b) {
 		if (a < b) {
