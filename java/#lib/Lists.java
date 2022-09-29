@@ -270,4 +270,69 @@ public class Lists {
 			}
 		}
 	}
+
+	/**
+	 * This is an priority queue containing int values in descending order.
+	 *   - All operations run in amortized O(1) time.
+	 *   - However, it can only offer values that are greater-than-or-equal-to the last value of poll().
+	 *   - Before the first poll() call, any values can be inserted.
+	 */
+	public static class AscendingDiscretePriorityQueue<T> {
+		private int idx;
+		private ArrayList<ArrayDeque<T>> queues;
+		private IntConverter<T> converter;
+
+		public AscendingDiscretePriorityQueue(IntConverter<T> converter) {
+			this.queues = new ArrayList<>();
+			this.converter = converter;
+		}
+
+		public boolean offer(T item) {
+			int x = converter.toInt(item);
+			if (x < idx) {
+				return false;
+			}
+			getOrCreate(x).offer(item);
+			return true;
+		}
+
+		public T peek() {
+			return nextQueue().peek();
+		}
+
+		public T poll() {
+			return nextQueue().poll();
+		}
+
+		public boolean isEmpty() {
+			return nextQueue() == null;
+		}
+
+		private ArrayDeque<T> nextQueue() {
+			while (idx < queues.size()) {
+				ArrayDeque<T> q = queues.get(idx);
+				if (q != null && !q.isEmpty()) {
+					return q;
+				}
+				++idx;
+			}
+			return null;
+		}
+
+		private ArrayDeque<T> getOrCreate(int i) {
+			while (queues.size() <= i) {
+				queues.add(null);
+			}
+			ArrayDeque<T> q = queues.get(i);
+			if (q == null) {
+				q = new ArrayDeque<>();
+				queues.set(i, q);
+			}
+			return q;
+		}
+
+		public static interface IntConverter<T> {
+			public int toInt(T item);
+		}
+	}
 }
