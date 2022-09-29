@@ -98,7 +98,37 @@ public class ArraysAndStrings {
 
 	public static class Sort {
 		public static int[] ints(int[] A) {
-			return mergesortInts(A);
+			final int N = A.length;
+			
+			int[] L = new int[N >> 1];
+			int[] R = new int[N >> 1];
+			for (int w = 2; w < N; w <<= 1) {
+				int hw = w << 1;
+				for (int i = 0; i + hw < N; i += w) {
+					int j = i + hw;
+					int k = Math.min(i + w, N);
+					
+					System.arraycopy(A, i, L, 0, hw);
+					System.arraycopy(A, j, R, 0, k - j);
+					
+					int p = i;
+					int a = 0;
+					int b = 0;
+					while (a < L.length && b < R.length) {
+						if (L[a] < R[b]) {
+							A[p++] = L[a++];
+						} else {
+							A[p++] = R[b++];
+						}
+					}
+					if (a < L.length) {
+						System.arraycopy(L, a, A, p, L.length - a);
+					} else {
+						System.arraycopy(R, b, A, p, R.length - b);
+					}
+				}
+			}
+			return A;
 		}
 
 		public static long[] longs(long[] A) {
@@ -129,40 +159,6 @@ public class ArraysAndStrings {
 
 			for (int i = 0; i < N; ++i) {
 				A[i] = arr[i];
-			}
-			return A;
-		}
-		
-		private static int[] mergesortInts(int[] A) {
-			final int N = A.length;
-			
-			int[] L = new int[N >> 1];
-			int[] R = new int[N >> 1];
-			for (int w = 2; w < N; w <<= 1) {
-				int hw = w << 1;
-				for (int i = 0; i + hw < N; i += w) {
-					int j = i + hw;
-					int k = Math.min(i + w, N);
-					
-					System.arraycopy(A, i, L, 0, hw);
-					System.arraycopy(A, j, R, 0, k - j);
-					
-					int p = i;
-					int a = 0;
-					int b = 0;
-					while (a < L.length && b < R.length) {
-						if (L[a] < R[b]) {
-							A[p++] = L[a++];
-						} else {
-							A[p++] = R[b++];
-						}
-					}
-					if (a < L.length) {
-						System.arraycopy(L, a, A, p, L.length - a);
-					} else {
-						System.arraycopy(R, b, A, p, R.length - b);
-					}
-				}
 			}
 			return A;
 		}
