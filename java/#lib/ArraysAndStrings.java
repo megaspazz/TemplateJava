@@ -95,22 +95,10 @@ public class ArraysAndStrings {
 			A[j] = tmp;
 		}
 	}
-	
+
 	public static class Sort {
 		public static int[] ints(int[] A) {
-			final int N = A.length;
-
-			Integer[] arr = new Integer[N];
-			for (int i = 0; i < N; ++i) {
-				arr[i] = A[i];
-			}
-
-			Arrays.sort(arr);
-
-			for (int i = 0; i < N; ++i) {
-				A[i] = arr[i];
-			}
-			return A;
+			return mergesortInts(A);
 		}
 
 		public static long[] longs(long[] A) {
@@ -144,8 +132,42 @@ public class ArraysAndStrings {
 			}
 			return A;
 		}
+		
+		private static int[] mergesortInts(int[] A) {
+			final int N = A.length;
+			
+			int[] L = new int[N >> 1];
+			int[] R = new int[N >> 1];
+			for (int w = 2; w < N; w <<= 1) {
+				int hw = w << 1;
+				for (int i = 0; i + hw < N; i += w) {
+					int j = i + hw;
+					int k = Math.min(i + w, N);
+					
+					System.arraycopy(A, i, L, 0, hw);
+					System.arraycopy(A, j, R, 0, k - j);
+					
+					int p = i;
+					int a = 0;
+					int b = 0;
+					while (a < L.length && b < R.length) {
+						if (L[a] < R[b]) {
+							A[p++] = L[a++];
+						} else {
+							A[p++] = R[b++];
+						}
+					}
+					if (a < L.length) {
+						System.arraycopy(L, a, A, p, L.length - a);
+					} else {
+						System.arraycopy(R, b, A, p, R.length - b);
+					}
+				}
+			}
+			return A;
+		}
 	}
-	
+
 	/**
 	 * Generic binary search to find the first or last value resulting in a matching condition.
 	 */
@@ -216,6 +238,24 @@ public class ArraysAndStrings {
 
 		public static interface IntCheck {
 			public boolean valid(int value);
+		}
+	}
+
+	private static class Shuffle {
+		private static final ThreadLocalRandom RNG = ThreadLocalRandom.current();
+		
+		public static int[] ints(int[] A) {
+			for (int i = A.length - 1; i > 0; --i) {
+				int j = RNG.nextInt(0, i + 1);
+				swapInts(A, i, j);
+			}
+			return A;
+		}
+		
+		private static void swapInts(int[] A, int i, int j) {
+			int tmp = A[i];
+			A[i] = A[j];
+			A[j] = tmp;
 		}
 	}
 }
