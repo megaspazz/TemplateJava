@@ -100,31 +100,29 @@ public class ArraysAndStrings {
 		public static int[] ints(int[] A) {
 			final int N = A.length;
 			
-			int[] L = new int[N >> 1];
-			int[] R = new int[N >> 1];
-			for (int w = 2; w < N; w <<= 1) {
-				int hw = w << 1;
-				for (int i = 0; i + hw < N; i += w) {
-					int j = i + hw;
+			int[] buf = new int[N];
+			for (int lw = 1; lw < N; lw <<= 1) {
+				int w = lw << 1;
+				for (int i = 0; i + lw <= N; i += w) {
 					int k = Math.min(i + w, N);
 					
-					System.arraycopy(A, i, L, 0, hw);
-					System.arraycopy(A, j, R, 0, k - j);
+					int segLen = k - i;
+					System.arraycopy(A, i, buf, 0, segLen);
 					
 					int p = i;
 					int a = 0;
-					int b = 0;
-					while (a < L.length && b < R.length) {
-						if (L[a] < R[b]) {
-							A[p++] = L[a++];
+					int b = lw;
+					while (a < lw && b < segLen) {
+						if (buf[a] < buf[b]) {
+							A[p++] = buf[a++];
 						} else {
-							A[p++] = R[b++];
+							A[p++] = buf[b++];
 						}
 					}
-					if (a < L.length) {
-						System.arraycopy(L, a, A, p, L.length - a);
-					} else {
-						System.arraycopy(R, b, A, p, R.length - b);
+					if (a < lw) {
+						System.arraycopy(buf, a, A, p, lw - a);
+					} else if (b < segLen) {
+						System.arraycopy(buf, b, A, p, segLen - b);
 					}
 				}
 			}
