@@ -222,8 +222,8 @@ public class ArraysAndStrings {
 	/**
 	 * This is an priority queue containing int values in descending order.
 	 *   - All operations run in amortized O(1) time.
-	 *   - However, it can only offer values that are less-than-or-equal-to the last value of poll().
-	 *   - Before the first poll() call, any values can be inserted up to the maximum size initialized of the priority queue.
+	 *   - However, it can only offer values that are greater-than-or-equal-to the last value of poll().
+	 *   - Before the first poll() call, any values can be inserted.
 	 */
 	public static class AscendingDiscretePriorityQueue<T> {
 		private int idx;
