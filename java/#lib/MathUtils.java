@@ -24,7 +24,7 @@ public class Combinatorics {
 	 * Computes the modulo result of (n choose k).
 	 * Requires pre-computing the factorial function and mod-inverse of factorial function.
 	 */
-	private static long C(int n, int k) {
+	public static long C(int n, int k) {
 		return F[n] * FI[k] % MOD * FI[n - k] % MOD;
 	}
 
