@@ -364,6 +364,7 @@ public class RangeQueries {
 		// Delete these after doing find-and-replace.
 		private static final class PrimitiveType {}
 
+		// Implement the value merge function.
 		private static PrimitiveType merge(PrimitiveType a, PrimitiveType b) {
 			throw new UnsupportedOperationException("Not implemented yet.");
 			
