@@ -101,10 +101,12 @@ public class Methods {
 		}
 
 		private static class CountMap<T> extends HashMap<T, Integer> {
+			private static final long serialVersionUID = 2842858160255507378L;
+
 			public int getCount(T k) {
 				return getOrDefault(k, 0);
 			}
-	
+
 			public void increment(T k, int v) {
 				int next = getCount(k) + v;
 				if (next == 0) {
