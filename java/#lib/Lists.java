@@ -271,6 +271,134 @@ public class Lists {
 		}
 	}
 
+	public static class IntDeque {
+		private int[] arr;
+		private int off;
+		private int len;
+		
+		public IntDeque() {
+			this(12);
+		}
+		
+		public IntDeque(int capacity) {
+			this.arr = new int[capacity];
+		}
+		
+		public void addFirst(int x) {
+			if (len == arr.length) {
+				increaseCapacity();
+			}
+			if (off == 0) {
+				off = arr.length;
+			}
+			arr[--off] = x;
+			++len;
+		}
+		
+		public void addLast(int x) {
+			if (len == arr.length) {
+				increaseCapacity();
+			}
+			int idx = index(off + len);
+			arr[idx] = x;
+			++len;
+		}
+		
+		public int peekFirst() {
+			return arr[off];
+		}
+		
+		public int peekLast() {
+			int idx = index(off + len);
+			return arr[idx];
+		}
+		
+		public int removeFirst() {
+			int ans = peekFirst();
+			off = index(off + 1);
+			--len;
+			return ans;
+		}
+		
+		public int removeLast() {
+			int ans = peekLast();
+			--len;
+			return ans;
+		}
+		
+		public void add(int x) {
+			addLast(x);
+		}
+		
+		public void offer(int x) {
+			addLast(x);
+		}
+		
+		public int poll() {
+			return removeFirst();
+		}
+		
+		public int peekQueue() {
+			return peekFirst();
+		}
+		
+		public void push(int x) {
+			addLast(x);
+		}
+		
+		public int pop() {
+			return removeLast();
+		}
+		
+		public int peekStack() {
+			return peekLast();
+		}
+		
+		public int peek() {
+			return peekFirst();
+		}
+		
+		public int get(int i) {
+			if (i >= len) {
+				throw new ArrayIndexOutOfBoundsException(String.format("index %d out of range [0, %d)", i, len));
+			}
+			int idx = index(i + off);
+			return arr[idx];
+		}
+		
+		public void set(int i, int x) {
+			if (i >= len) {
+				throw new ArrayIndexOutOfBoundsException(String.format("index %d out of range [0, %d)", i, len));
+			}
+			int idx = index(i + off);
+			arr[idx] = x;
+		}
+		
+		public int size() {
+			return len;
+		}
+		
+		public boolean isEmpty() {
+			return size() == 0;
+		}
+		
+		private void increaseCapacity() {
+			int[] next = new int[arr.length << 1];
+			int endLen = arr.length - off;
+			System.arraycopy(arr, off, next, 0, endLen);
+			System.arraycopy(arr, 0, next, endLen, off);
+			arr = next;
+			off = 0;
+		}
+		
+		private int index(int i) {
+			if (i >= arr.length) {
+				i -= arr.length;
+			}
+			return i;
+		}
+	}
+
 	/**
 	 * This is an priority queue containing int values in descending order.
 	 *   - All operations run in amortized O(1) time.
