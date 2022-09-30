@@ -271,7 +271,17 @@ public class RangeQueries {
 				curr >>= 1;
 			}
 		}
-		
+
+		public void increment(int index, T delta) {
+			T data = merge(get(index), delta);
+			insert(index, data);
+		}
+
+		public T get(int index) {
+			int i = (values.length >> 1) + index;
+			return values[i];
+		}
+
 		public T get(int loInclusive, int hiInclusive) {
 			if (loInclusive > hiInclusive) {
 				return defaultValue;
@@ -367,28 +377,28 @@ public class RangeQueries {
 		// Implement the value merge function.
 		private static PrimitiveType merge(PrimitiveType a, PrimitiveType b) {
 			throw new UnsupportedOperationException("Not implemented yet.");
-			
+
 			// Example implementation for sum.
 			// return a + b;
 		}
 
 		// The default value if nothing in range.
 		private static PrimitiveType DEFAULT_VALUE = null;
-		
+
 		public static PrimitiveArraySegmentTree newWithSize(int size) {
 			return new PrimitiveArraySegmentTree(Integer.SIZE - Integer.numberOfLeadingZeros(size));
 		}
-		
+
 		private int bits;
 		private PrimitiveType[] values;
-		
+
 		public PrimitiveArraySegmentTree(int bits) {
 			this.bits = bits;
 
 			int nodeCount = 1 << (bits + 1);
 			values = new PrimitiveType[nodeCount];
 		}
-		
+
 		public void insert(int index, PrimitiveType data) {
 			int curr = (values.length >> 1) + index;
 			values[curr] = data;
@@ -400,14 +410,24 @@ public class RangeQueries {
 				curr >>= 1;
 			}
 		}
-		
+
+		public void increment(int index, PrimitiveType delta) {
+			PrimitiveType data = merge(get(index), delta);
+			insert(index, data);
+		}
+
+		public PrimitiveType get(int index) {
+			int i = (values.length >> 1) + index;
+			return values[i];
+		}
+
 		public PrimitiveType get(int loInclusive, int hiInclusive) {
 			if (loInclusive > hiInclusive) {
 				return DEFAULT_VALUE;
 			}
-			
+
 			int curr = 1;
-			for (int d = 0; d < bits ; ++d) {
+			for (int d = 0; d < bits; ++d) {
 				int shift = bits - d;
 				int LL = (curr << shift) - (values.length >> 1);
 				int LR = LL + (1 << (shift - 1)) - 1;
@@ -426,7 +446,7 @@ public class RangeQueries {
 			}
 			return values[curr];
 		}
-		
+
 		private PrimitiveType getGTE(int loInclusive, int curr, int dStart) {
 			PrimitiveType ans = DEFAULT_VALUE;
 			for (int d = dStart; d < bits; ++d) {
@@ -447,7 +467,7 @@ public class RangeQueries {
 			}
 			return merge(ans, values[curr]);
 		}
-		
+
 		private PrimitiveType getLTE(int hiInclusive, int curr, int dStart) {
 			PrimitiveType ans = DEFAULT_VALUE;
 			for (int d = dStart; d < bits; ++d) {
