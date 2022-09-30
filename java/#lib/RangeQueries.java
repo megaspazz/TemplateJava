@@ -356,6 +356,120 @@ public class RangeQueries {
 	}
 
 	/**
+	 * PrimitiveArraySegmentTree is the same as ArraySegmentTree, except that it uses a primitive type natively to avoid boxing/unboxing.
+	 * Use your editor's find-and-replace to rename the types into primitives, since Java doesn't support generics of primitives.
+	 */
+	public static class PrimitiveArraySegmentTree {
+		// Placeholder types so that the class will compile.
+		// Delete these after doing find-and-replace.
+		private static final class PrimitiveType {}
+
+		private static PrimitiveType merge(PrimitiveType a, PrimitiveType b) {
+			throw new UnsupportedOperationException("Not implemented yet.");
+			
+			// Example implementation for sum.
+			// return a + b;
+		}
+
+		// The default value if nothing in range.
+		private static PrimitiveType DEFAULT_VALUE = null;
+		
+		public static PrimitiveArraySegmentTree newWithSize(int size) {
+			return new PrimitiveArraySegmentTree(Integer.SIZE - Integer.numberOfLeadingZeros(size));
+		}
+		
+		private int bits;
+		private PrimitiveType[] values;
+		
+		public PrimitiveArraySegmentTree(int bits) {
+			this.bits = bits;
+
+			int nodeCount = 1 << (bits + 1);
+			values = new PrimitiveType[nodeCount];
+		}
+		
+		public void insert(int index, PrimitiveType data) {
+			int curr = (values.length >> 1) + index;
+			values[curr] = data;
+			curr >>= 1;
+			while (curr > 0) {
+				int left = curr << 1;
+				int right = left + 1;
+				values[curr] = merge(values[left], values[right]);
+				curr >>= 1;
+			}
+		}
+		
+		public PrimitiveType get(int loInclusive, int hiInclusive) {
+			if (loInclusive > hiInclusive) {
+				return DEFAULT_VALUE;
+			}
+			
+			int curr = 1;
+			for (int d = 0; d < bits ; ++d) {
+				int shift = bits - d;
+				int LL = (curr << shift) - (values.length >> 1);
+				int LR = LL + (1 << (shift - 1)) - 1;
+				int RL = LR + 1;
+				int lCurr = curr << 1;
+				int rCurr = lCurr + 1;
+				if (hiInclusive <= LR) {
+					curr = lCurr;
+				} else if (loInclusive >= RL) {
+					curr = rCurr;
+				} else {
+					PrimitiveType leftValue = getGTE(loInclusive, lCurr, d + 1);
+					PrimitiveType rightValue = getLTE(hiInclusive, rCurr, d + 1);
+					return merge(leftValue, rightValue);
+				}
+			}
+			return values[curr];
+		}
+		
+		private PrimitiveType getGTE(int loInclusive, int curr, int dStart) {
+			PrimitiveType ans = DEFAULT_VALUE;
+			for (int d = dStart; d < bits; ++d) {
+				int shift = bits - d;
+				int LL = (curr << shift) - (values.length >> 1);
+				int LR = LL + (1 << (shift - 1)) - 1;
+				int RL = LR + 1;
+				int rCurr = (curr << 1) + 1;
+				if (loInclusive <= LL) {
+					break;
+				}
+				if (loInclusive >= RL) {
+					curr = rCurr;
+				} else {
+					ans = merge(ans, values[rCurr]);
+					curr <<= 1;
+				}
+			}
+			return merge(ans, values[curr]);
+		}
+		
+		private PrimitiveType getLTE(int hiInclusive, int curr, int dStart) {
+			PrimitiveType ans = DEFAULT_VALUE;
+			for (int d = dStart; d < bits; ++d) {
+				int shift = bits - d;
+				int LL = (curr << shift) - (values.length >> 1);
+				int LR = LL + (1 << (shift - 1)) - 1;
+				int RR = LL + (1 << shift) - 1;
+				int lCurr = curr << 1;
+				if (hiInclusive >= RR) {
+					break;
+				}
+				if (hiInclusive <= LR) {
+					curr = lCurr;
+				} else {
+					ans = merge(ans, values[lCurr]);
+					curr = lCurr + 1;
+				}
+			}
+			return merge(ans, values[curr]);
+		}
+	}
+
+	/**
 	 * AVLTreeRangeSum performs arbitrary-length range sums in O(log N) time.
 	 */
 	public static class AVLTreeRangeSum {
