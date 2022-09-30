@@ -234,6 +234,113 @@ public class RangeQueries {
 		}
 	}
 
+	public static class ArraySegmentTree<T> {
+		private int bits;
+		private ArrayList<T> values = new ArrayList<>();
+		
+		private Merger<T> merger;
+		private T defaultValue;
+		
+		public ArraySegmentTree(int bits, Merger<T> merger, T defaultValue) {
+			this.bits = bits;
+			this.merger = merger;
+			this.defaultValue = defaultValue;
+			
+			int nodeCount = 1 << (bits + 1);
+			while (values.size() < nodeCount) {
+				values.add(defaultValue);
+			}
+		}
+		
+		public void insert(int index, T data) {
+			int curr = (values.size() >> 1) + index;
+			values.set(curr, data);
+			curr >>= 1;
+			while (curr > 0) {
+				int left = curr << 1;
+				int right = left + 1;
+				values.set(curr, merger.merge(values.get(left), values.get(right)));
+				curr >>= 1;
+			}
+		}
+		
+		public T get(int loInclusive, int hiInclusive) {
+			if (loInclusive > hiInclusive) {
+				return defaultValue;
+			}
+			
+			int curr = 1;
+			for (int d = 0; d < bits ; ++d) {
+				int shift = bits - d;
+				int LL = (curr << shift) - (values.size() >> 1);
+				int LR = LL + (1 << (shift - 1)) - 1;
+				int RL = LR + 1;
+				int lCurr = curr << 1;
+				int rCurr = lCurr + 1;
+				if (hiInclusive <= LR) {
+					curr = lCurr;
+				} else if (loInclusive >= RL) {
+					curr = rCurr;
+				} else {
+					T leftValue = getGTE(loInclusive, lCurr, d + 1);
+					T rightValue = getLTE(hiInclusive, rCurr, d + 1);
+					return merger.merge(leftValue, rightValue);
+				}
+			}
+			return values.get(curr);
+		}
+		
+		private T getGTE(int loInclusive, int curr, int dStart) {
+			T ans = defaultValue;
+			for (int d = dStart; d < bits; ++d) {
+				int shift = bits - d;
+				int LL = (curr << shift) - (values.size() >> 1);
+				int LR = LL + (1 << (shift - 1)) - 1;
+				int RL = LR + 1;
+				int rCurr = (curr << 1) + 1;
+				if (loInclusive <= LL) {
+					break;
+				}
+				if (loInclusive >= RL) {
+					curr = rCurr;
+				} else {
+					ans = merger.merge(ans, values.get(rCurr));
+					curr <<= 1;
+				}
+			}
+			return merger.merge(ans, values.get(curr));
+		}
+		
+		private T getLTE(int hiInclusive, int curr, int dStart) {
+			T ans = defaultValue;
+			for (int d = dStart; d < bits; ++d) {
+				int shift = bits - d;
+				int LL = (curr << shift) - (values.size() >> 1);
+				int LR = LL + (1 << (shift - 1)) - 1;
+				int RR = LL + (1 << shift) - 1;
+				int lCurr = curr << 1;
+				if (hiInclusive >= RR) {
+					break;
+				}
+				if (hiInclusive <= LR) {
+					curr = lCurr;
+				} else {
+					ans = merger.merge(ans, values.get(lCurr));
+					curr = lCurr + 1;
+				}
+			}
+			return merger.merge(ans, values.get(curr));
+		}
+
+		public static <T> ArraySegmentTree<T> newWithSize(int size, Merger<T> merger, T defaultValue) {
+			return new ArraySegmentTree<T>(Integer.SIZE - Integer.numberOfLeadingZeros(size), merger, defaultValue);
+		}
+		
+		public static interface Merger<T> {
+			public T merge(T a, T b);
+		}
+	}
+
 	/**
 	 * AVLTreeRangeSum performs arbitrary-length range sums in O(log N) time.
 	 */
