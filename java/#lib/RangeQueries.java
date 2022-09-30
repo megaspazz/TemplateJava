@@ -236,32 +236,38 @@ public class RangeQueries {
 		}
 	}
 
+	/**
+	 * Generic segment tree using a backing array.  Operations are implemented iteratively.
+	 * It is required to supply a T[] as template, as generic-typed arrays can't be constructed in Java.
+	 */
 	public static class ArraySegmentTree<T> {
+		public static <T> ArraySegmentTree<T> newWithSize(int size, Merger<T> merger, T defaultValue, T[] template) {
+			return new ArraySegmentTree<T>(Integer.SIZE - Integer.numberOfLeadingZeros(size), merger, defaultValue, template);
+		}
+		
 		private int bits;
-		private ArrayList<T> values = new ArrayList<>();
+		private T[] values;
 		
 		private Merger<T> merger;
 		private T defaultValue;
 		
-		public ArraySegmentTree(int bits, Merger<T> merger, T defaultValue) {
+		public ArraySegmentTree(int bits, Merger<T> merger, T defaultValue, T[] template) {
 			this.bits = bits;
 			this.merger = merger;
 			this.defaultValue = defaultValue;
-			
+
 			int nodeCount = 1 << (bits + 1);
-			while (values.size() < nodeCount) {
-				values.add(defaultValue);
-			}
+			values = Arrays.copyOf(template, nodeCount);
 		}
 		
 		public void insert(int index, T data) {
-			int curr = (values.size() >> 1) + index;
-			values.set(curr, data);
+			int curr = (values.length >> 1) + index;
+			values[curr] = data;
 			curr >>= 1;
 			while (curr > 0) {
 				int left = curr << 1;
 				int right = left + 1;
-				values.set(curr, merger.merge(values.get(left), values.get(right)));
+				values[curr] = merge(values[left], values[right]);
 				curr >>= 1;
 			}
 		}
@@ -274,7 +280,7 @@ public class RangeQueries {
 			int curr = 1;
 			for (int d = 0; d < bits ; ++d) {
 				int shift = bits - d;
-				int LL = (curr << shift) - (values.size() >> 1);
+				int LL = (curr << shift) - (values.length >> 1);
 				int LR = LL + (1 << (shift - 1)) - 1;
 				int RL = LR + 1;
 				int lCurr = curr << 1;
@@ -286,17 +292,17 @@ public class RangeQueries {
 				} else {
 					T leftValue = getGTE(loInclusive, lCurr, d + 1);
 					T rightValue = getLTE(hiInclusive, rCurr, d + 1);
-					return merger.merge(leftValue, rightValue);
+					return merge(leftValue, rightValue);
 				}
 			}
-			return values.get(curr);
+			return values[curr];
 		}
 		
 		private T getGTE(int loInclusive, int curr, int dStart) {
 			T ans = defaultValue;
 			for (int d = dStart; d < bits; ++d) {
 				int shift = bits - d;
-				int LL = (curr << shift) - (values.size() >> 1);
+				int LL = (curr << shift) - (values.length >> 1);
 				int LR = LL + (1 << (shift - 1)) - 1;
 				int RL = LR + 1;
 				int rCurr = (curr << 1) + 1;
@@ -306,18 +312,18 @@ public class RangeQueries {
 				if (loInclusive >= RL) {
 					curr = rCurr;
 				} else {
-					ans = merger.merge(ans, values.get(rCurr));
+					ans = merge(ans, values[rCurr]);
 					curr <<= 1;
 				}
 			}
-			return merger.merge(ans, values.get(curr));
+			return merge(ans, values[curr]);
 		}
 		
 		private T getLTE(int hiInclusive, int curr, int dStart) {
 			T ans = defaultValue;
 			for (int d = dStart; d < bits; ++d) {
 				int shift = bits - d;
-				int LL = (curr << shift) - (values.size() >> 1);
+				int LL = (curr << shift) - (values.length >> 1);
 				int LR = LL + (1 << (shift - 1)) - 1;
 				int RR = LL + (1 << shift) - 1;
 				int lCurr = curr << 1;
@@ -327,15 +333,21 @@ public class RangeQueries {
 				if (hiInclusive <= LR) {
 					curr = lCurr;
 				} else {
-					ans = merger.merge(ans, values.get(lCurr));
+					ans = merge(ans, values[lCurr]);
 					curr = lCurr + 1;
 				}
 			}
-			return merger.merge(ans, values.get(curr));
+			return merge(ans, values[curr]);
 		}
-
-		public static <T> ArraySegmentTree<T> newWithSize(int size, Merger<T> merger, T defaultValue) {
-			return new ArraySegmentTree<T>(Integer.SIZE - Integer.numberOfLeadingZeros(size), merger, defaultValue);
+		
+		private T merge(T a, T b) {
+			if (a == null) {
+				a = defaultValue;
+			}
+			if (b == null) {
+				b = defaultValue;
+			}
+			return merger.merge(a, b);
 		}
 		
 		public static interface Merger<T> {
