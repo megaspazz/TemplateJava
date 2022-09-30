@@ -117,6 +117,8 @@ public class RangeQueries {
 	 * Here is a generic Segment Tree implementation.
 	 * It requires a Combiner to define how to merge values.
 	 * It takes an optional DefaultProvider to replace null values; otherwise, the Combiner will need to manually handle null values.
+	 *
+	 * NOTE: Slightly prefer ArraySegmentTree for performance!
 	 */
 	public static class GenericSegmentTree<T> {
 		public ArrayList<SegmentTreeNode> leaves;
