@@ -153,6 +153,14 @@ public class Combinatorics {
 			return ans;
 		}
 
+		private static long add(long... arr) {
+			long ans = 0;
+			for (long x : arr) {
+				ans = add(ans, x);
+			}
+			return ans;
+		}
+
 		/**
 		 * Computes the value of (b ^ e) % MOD.
 		 */
