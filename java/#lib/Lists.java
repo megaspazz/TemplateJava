@@ -235,7 +235,7 @@ public class Lists {
 			return Arrays.copyOf(arr, pos);
 		}
 
-		public static LongList of(int... items) {
+		public static LongList of(long... items) {
 			LongList lst = new LongList(items.length);
 			System.arraycopy(items, 0, lst.arr, 0, items.length);
 			lst.pos = items.length;
