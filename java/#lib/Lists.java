@@ -271,6 +271,12 @@ public class Lists {
 		}
 	}
 
+	/**
+	 * Circular buffer of int values, can be used as:
+	 *   - ArrayList: values are added to end.
+	 *   - Queue: values are added to end and removed from front.
+	 *   - Stack: values are added to and removed from front.
+	 */
 	public static class IntDeque {
 		private int[] arr;
 		private int off;
@@ -334,31 +340,23 @@ public class Lists {
 			addLast(x);
 		}
 
-		public long poll() {
+		public int poll() {
 			return removeFirst();
 		}
 
-		public long peekQueue() {
-			return peekFirst();
-		}
-
 		public void push(int x) {
-			addLast(x);
+			addFirst(x);
 		}
 
-		public long pop() {
-			return removeLast();
+		public int pop() {
+			return removeFirst();
 		}
 
-		public long peekStack() {
-			return peekLast();
-		}
-
-		public long peek() {
+		public int peek() {
 			return peekFirst();
 		}
 
-		public long get(int i) {
+		public int get(int i) {
 			if (i >= len) {
 				throw new ArrayIndexOutOfBoundsException(String.format("index %d out of range [0, %d)", i, len));
 			}
@@ -427,6 +425,12 @@ public class Lists {
 		}
 	}
 
+	/**
+	 * Circular buffer of long values, can be used as:
+	 *   - ArrayList: values are added to end.
+	 *   - Queue: values are added to end and removed from front.
+	 *   - Stack: values are added to and removed from front.
+	 */
 	public static class LongDeque {
 		private long[] arr;
 		private int off;
@@ -494,20 +498,12 @@ public class Lists {
 			return removeFirst();
 		}
 
-		public long peekQueue() {
-			return peekFirst();
-		}
-
 		public void push(long x) {
-			addLast(x);
+			addFirst(x);
 		}
 
 		public long pop() {
-			return removeLast();
-		}
-
-		public long peekStack() {
-			return peekLast();
+			return removeFirst();
 		}
 
 		public long peek() {
