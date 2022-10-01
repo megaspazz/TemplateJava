@@ -13,7 +13,7 @@ public class Hashing {
 
 		@Override
 		public boolean equals(Object obj) {
-			IntKey other = (IntKey)obj;
+			IntKey other = (IntKey) obj;
 			return value == other.value;
 		}
 
@@ -36,7 +36,7 @@ public class Hashing {
 			return new IntKey(value);
 		}
 
-		private static final int ADD_MIX = mulberry32((int)System.nanoTime());
+		private static final int ADD_MIX = mulberry32((int) System.nanoTime());
 
 		private static final int CACHE_MIN = -256;
 		private static final int CACHE_MAX = 256;
