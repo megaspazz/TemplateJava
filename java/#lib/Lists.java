@@ -304,24 +304,24 @@ public class Lists {
 			++len;
 		}
 
-		public long peekFirst() {
+		public int peekFirst() {
 			return arr[off];
 		}
 
-		public long peekLast() {
+		public int peekLast() {
 			int idx = index(off + len - 1);
 			return arr[idx];
 		}
 
-		public long removeFirst() {
-			long ans = peekFirst();
+		public int removeFirst() {
+			int ans = peekFirst();
 			off = index(off + 1);
 			--len;
 			return ans;
 		}
 
-		public long removeLast() {
-			long ans = peekLast();
+		public int removeLast() {
+			int ans = peekLast();
 			--len;
 			return ans;
 		}
