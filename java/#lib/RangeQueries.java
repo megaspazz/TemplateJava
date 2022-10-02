@@ -370,8 +370,8 @@ public class RangeQueries {
 	 * Use your editor's find-and-replace to rename the types into primitives, since Java doesn't support generics of primitives.
 	 */
 	public static class PrimitiveArraySegmentTree {
-		// Placeholder types so that the class will compile.
-		// Delete these after doing find-and-replace.
+		// Placeholder type so that the class will compile.
+		// Delete this after doing find-and-replace.
 		private static final class PrimitiveType {}
 
 		// Implement the value merge function.
