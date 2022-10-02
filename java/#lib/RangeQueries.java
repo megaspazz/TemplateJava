@@ -114,6 +114,90 @@ public class RangeQueries {
 	}
 
 	/**
+	 * Sparse table initializes in O(N log N) time, but performs queries in O(1) time.
+	 * Queries must be performed on non-empty ranges within the table's range of [0, n).
+	 * 
+	 * NOTE: Prefer using PrimitiveSparseTable, as performance is much better than generics.
+	 */
+	public static class SparseTable<T> {
+		private ArrayList<T[]> table;
+		private Merger<T> merger;
+
+		public SparseTable(T[] a, Merger<T> merger) {
+			int n = a.length;
+			int p = Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(n - 1));
+
+			this.table = new ArrayList<>(p);
+			this.merger = merger;
+
+			this.table.add(Arrays.copyOf(a, n));
+			for (int j = 1; j < p; j++) {
+				int off = (1 << (j - 1));
+				T[] prev = this.table.get(j - 1);
+				T[] curr = Arrays.copyOf(a, n);
+				for (int i = 0; i + off < n; i++) {
+					curr[i] = this.merger.merge(prev[i], prev[i + off]);
+				}
+				this.table.add(curr);
+			}
+		}
+
+		public T get(int lowerInclusive, int upperInclusive) {
+			int k = 31 - Integer.numberOfLeadingZeros(upperInclusive - lowerInclusive + 1);
+			int off = (1 << k);
+			return merger.merge(table.get(k)[lowerInclusive], table.get(k)[upperInclusive - off + 1]);
+		}
+
+		public static interface Merger<T> {
+			public T merge(T a, T b);
+		}
+	}
+
+	/**
+	 * Sparse table initializes in O(N log N) time, but performs queries in O(1) time.
+	 * Queries must be performed on non-empty ranges within the table's range of [0, n).
+	 */
+	public static class PrimitiveSparseTable {
+		// Placeholder type so that the class will compile.
+		// Delete this after doing find-and-replace.
+		private static final class PrimitiveType {}
+
+		// Implement the value merge function.
+		private static PrimitiveType merge(PrimitiveType a, PrimitiveType b) {
+			throw new UnsupportedOperationException("Not implemented yet.");
+
+			// Example implementation for max.
+			// return Math.max(a, b);
+		}
+
+		private PrimitiveType[][] table;
+
+		public PrimitiveSparseTable(PrimitiveType[] a) {
+			int n = a.length;
+			int p = Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(n - 1));
+
+			this.table = new PrimitiveType[p][n];
+			System.arraycopy(a, 0, this.table[0], 0, n);
+			for (int b = 1; b < p; b++) {
+				int off = (1 << (b - 1));
+				for (int i = 0; i < n; i++) {
+					if (i + off < n) {
+						this.table[b][i] = merge(this.table[b - 1][i], this.table[b - 1][i + off]);
+					} else {
+						this.table[b][i] = this.table[b - 1][i];
+					}
+				}
+			}
+		}
+
+		public PrimitiveType get(int lowerInclusive, int upperInclusive) {
+			int k = 31 - Integer.numberOfLeadingZeros(upperInclusive - lowerInclusive + 1);
+			int off = (1 << k);
+			return merge(table[k][lowerInclusive], table[k][upperInclusive - off + 1]);
+		}
+	}
+
+	/**
 	 * Here is a generic Segment Tree implementation.
 	 * It requires a Combiner to define how to merge values.
 	 * It takes an optional DefaultProvider to replace null values; otherwise, the Combiner will need to manually handle null values.
@@ -1143,6 +1227,80 @@ public class RangeQueries {
 			root.update();
 			pivot.update();
 			return pivot;
+		}
+	}
+
+	public static class SparseTable<T> {
+		private ArrayList<T[]> table;
+		private Merger<T> merger;
+
+		public SparseTable(T[] a, Merger<T> merger) {
+			int n = a.length;
+			int p = Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(n - 1));
+
+			this.table = new ArrayList<>(p);
+			this.merger = merger;
+
+			this.table.add(Arrays.copyOf(a, n));
+			for (int j = 1; j < p; j++) {
+				int off = (1 << (j - 1));
+				T[] prev = this.table.get(j - 1);
+				T[] curr = Arrays.copyOf(a, n);
+				for (int i = 0; i + off < n; i++) {
+					curr[i] = this.merger.merge(prev[i], prev[i + off]);
+				}
+				this.table.add(curr);
+			}
+		}
+
+		public T get(int lower, int upper) {
+			int k = 31 - Integer.numberOfLeadingZeros(upper - lower + 1);
+			int off = (1 << k);
+			return merger.merge(table.get(k)[lower], table.get(k)[upper - off + 1]);
+		}
+
+		public static interface Merger<T> {
+			public T merge(T a, T b);
+		}
+	}
+
+	public static class PrimitiveSparseTable {
+		// Placeholder type so that the class will compile.
+		// Delete this after doing find-and-replace.
+		private static final class PrimitiveType {}
+
+		// Implement the value merge function.
+		private static PrimitiveType merge(PrimitiveType a, PrimitiveType b) {
+			throw new UnsupportedOperationException("Not implemented yet.");
+
+			// Example implementation for max.
+			// return Math.max(a, b);
+		}
+
+		private PrimitiveType[][] table;
+
+		public PrimitiveSparseTable(PrimitiveType[] a) {
+			int n = a.length;
+			int p = Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(n - 1));
+
+			this.table = new PrimitiveType[p][n];
+			System.arraycopy(a, 0, this.table[0], 0, n);
+			for (int b = 1; b < p; b++) {
+				int off = (1 << (b - 1));
+				for (int i = 0; i < n; i++) {
+					if (i + off < n) {
+						this.table[b][i] = merge(this.table[b - 1][i], this.table[b - 1][i + off]);
+					} else {
+						this.table[b][i] = this.table[b - 1][i];
+					}
+				}
+			}
+		}
+
+		public PrimitiveType get(int lower, int upper) {
+			int k = 31 - Integer.numberOfLeadingZeros(upper - lower + 1);
+			int off = (1 << k);
+			return merge(table[k][lower], table[k][upper - off + 1]);
 		}
 	}
 }
