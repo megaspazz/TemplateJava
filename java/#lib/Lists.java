@@ -10,7 +10,7 @@ public class Lists {
 		}
 
 		public IntList() {
-			this(10);
+			this(4);
 		}
 
 		public IntList(IntList other) {
@@ -145,7 +145,7 @@ public class Lists {
 		}
 
 		public LongList() {
-			this(10);
+			this(4);
 		}
 
 		public LongList(LongList other) {
