@@ -28,6 +28,10 @@ public class Combinatorics {
 		return F[n] * FI[k] % MOD * FI[n - k] % MOD;
 	}
 
+	/**
+	 * Computes the GCD (greatest common denominator) between all the numbers.
+	 * NOTE: Only works with non-negative numbers!
+	 */
 	public static int gcd(int... arr) {
 		int g = 0;
 		for (int x : arr) {
@@ -59,16 +63,20 @@ public class Combinatorics {
 
 	/**
 	 * Computes the LCM (least common multiple) between all the numbers.
-	 * NOTE:  Only works with non-negative numbers!
+	 * NOTE:  Only works with positive numbers!
 	 */
 	public static int lcm(int... arr) {
 		int ans = 1;
 		for (int x : arr) {
-			ans = ans * x / gcd(ans, x);
+			ans *= x / gcd(ans, x);
 		}
 		return ans;
 	}
 
+	/**
+	 * Computes the GCD (greatest common denominator) between all the numbers.
+	 * NOTE: Only works with non-negative numbers!
+	 */
 	public static long gcd(long... arr) {
 		long g = 0;
 		for (long x : arr) {
@@ -100,16 +108,16 @@ public class Combinatorics {
 
 	/**
 	 * Computes the LCM (least common multiple) between all the numbers.
-	 * NOTE:  Only works with non-negative numbers!
+	 * NOTE:  Only works with positive numbers!
 	 */
 	public static long lcm(long... arr) {
 		long ans = arr[0];
 		for (long x : arr) {
-			ans = ans * x / gcd(ans, x);
+			ans *= x / gcd(ans, x);
 		}
 		return ans;
 	}
-	
+
 	/**
 	 * Computes arithmetic operations modulo some constant MOD, should be a prime.
 	 * It is guaranteed to not overflow, as long as the following requirements are satisfied.
