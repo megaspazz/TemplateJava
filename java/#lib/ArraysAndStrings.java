@@ -304,13 +304,14 @@ public class ArraysAndStrings {
 
 			int j = 0;
 			int k = 0;
-			List<Integer> pos = new ArrayList<>();
+			int[] found = new int[N];
+			int p = 0;
 			while (j < S.length) {
 				if (W[k] == S[j]) {
 					++j;
 					++k;
 					if (k == M) {
-						pos.add(j - k);
+						found[p++] = j - k;
 						k = T[k];
 					}
 				} else {
@@ -321,12 +322,7 @@ public class ArraysAndStrings {
 					}
 				}
 			}
-
-			int[] arr = new int[pos.size()];
-			for (int i = 0; i < arr.length; ++i) {
-				arr[i] = pos.get(i);
-			}
-			return arr;
+			return Arrays.copyOf(found, p);
 		}
 
 		public static int[] buildTable(String W) {
@@ -345,7 +341,7 @@ public class ArraysAndStrings {
 			int cnd = 0;
 			while (pos < N) {
 				if (W[pos] == W[cnd]) {
-					T[pos] = T[cnd];
+					T[pos] = cnd;
 				} else {
 					T[pos] = cnd;
 					while (cnd >= 0 && W[pos] != W[cnd]) {
