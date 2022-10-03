@@ -110,6 +110,22 @@ public class Lists {
 			return size() == 0;
 		}
 
+		public int[] toArray() {
+			if (len == 0) {
+				return new int[0];
+			}
+			int idx = index(off + len);
+			if (idx > off) {
+				return Arrays.copyOfRange(arr, off, idx);
+			}
+			int[] A = new int[len];
+			int endLen = arr.length - off;
+			int startLen = len - endLen;
+			System.arraycopy(arr, off, A, 0, endLen);
+			System.arraycopy(arr, 0, A, endLen, startLen);
+			return A;
+		}
+
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
@@ -262,6 +278,22 @@ public class Lists {
 
 		public boolean isEmpty() {
 			return size() == 0;
+		}
+
+		public long[] toArray() {
+			if (len == 0) {
+				return new long[0];
+			}
+			int idx = index(off + len);
+			if (idx > off) {
+				return Arrays.copyOfRange(arr, off, idx);
+			}
+			long[] A = new long[len];
+			int endLen = arr.length - off;
+			int startLen = len - endLen;
+			System.arraycopy(arr, off, A, 0, endLen);
+			System.arraycopy(arr, 0, A, endLen, startLen);
+			return A;
 		}
 
 		@Override
