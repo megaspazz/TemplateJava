@@ -252,4 +252,137 @@ public class ArraysAndStrings {
 			A[j] = tmp;
 		}
 	}
+
+	/**
+	 * Wrapper class for Knuth-Morris-Pratt (KMP) string search algorithm.
+	 *   - Use `KMP.buildTable(...)` if only the failure table containing prefix matches is needed.
+	 *   - Use `KMP.search(...)` to find all matching indices.
+	 */
+	public static class KMP {
+		public int[] W;
+		public int[] T;
+
+		public KMP(String needle) {
+			this(stringToIntArray(needle));
+		}
+
+		public KMP(char[] needle) {
+			this(charArrayToIntArray(needle));
+		}
+
+		public KMP(int[] needle) {
+			this.W = needle;
+			this.T = buildTable(this.W);
+		}
+
+		public int[] search(String S) {
+			return search(stringToIntArray(S));
+		}
+
+		public int[] search(char[] S) {
+			return search(charArrayToIntArray(S));
+		}
+
+		public int[] search(int[] S) {
+			final int N = S.length;
+			final int M = W.length;
+
+			if (N == 0) {
+				if (M == 0) {
+					return new int[1];
+				} else {
+					return new int[0];
+				}
+			}
+			if (M == 0) {
+				int[] arr = new int[N];
+				for (int i = 0; i < N; ++i) {
+					arr[i] = i;
+				}
+				return arr;
+			}
+
+			int j = 0;
+			int k = 0;
+			List<Integer> pos = new ArrayList<>();
+			while (j < S.length) {
+				if (W[k] == S[j]) {
+					++j;
+					++k;
+					if (k == M) {
+						pos.add(j - k);
+						k = T[k];
+					}
+				} else {
+					k = T[k];
+					if (k < 0) {
+						++j;
+						++k;
+					}
+				}
+			}
+
+			int[] arr = new int[pos.size()];
+			for (int i = 0; i < arr.length; ++i) {
+				arr[i] = pos.get(i);
+			}
+			return arr;
+		}
+
+		public static int[] buildTable(String W) {
+			return buildTable(stringToIntArray(W));
+		}
+
+		public static int[] buildTable(char[] W) {
+			return buildTable(charArrayToIntArray(W));
+		}
+
+		public static int[] buildTable(int[] W) {
+			final int N = W.length;
+			int[] T = new int[N + 1];
+			T[0] = -1;
+			int pos = 1;
+			int cnd = 0;
+			while (pos < N) {
+				if (W[pos] == W[cnd]) {
+					T[pos] = T[cnd];
+				} else {
+					T[pos] = cnd;
+					while (cnd >= 0 && W[pos] != W[cnd]) {
+						cnd = T[cnd];
+					}
+				}
+				++pos;
+				++cnd;
+			}
+			T[pos] = cnd;
+			return T;
+		}
+
+		public static int[] search(String S, String W) {
+			return new KMP(W).search(S);
+		}
+
+		public static int[] search(char[] S, char[] W) {
+			return new KMP(W).search(S);
+		}
+
+		public static int[] search(int[] S, int[] W) {
+			return new KMP(W).search(S);
+		}
+
+		private static int[] stringToIntArray(String str) {
+			return charArrayToIntArray(str.toCharArray());
+		}
+
+		private static int[] charArrayToIntArray(char[] S) {
+			final int N = S.length;
+
+			int[] A = new int[N];
+			for (int i = 0; i < N; ++i) {
+				A[i] = S[i];
+			}
+			return A;
+		}
+	}
 }
