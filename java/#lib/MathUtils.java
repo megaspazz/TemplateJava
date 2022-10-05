@@ -120,40 +120,27 @@ public class Combinatorics {
 
 	/**
 	 * Computes arithmetic operations modulo some constant MOD, should be a prime.
-	 * It is guaranteed to not overflow, as long as the following requirements are satisfied.
-	 *   - MOD must be less than or equal to Long.MAX_VALUE / 2^CHUNK_SIZE.
-	 *   - All operands must be within the range [0, MOD).
+	 * It is guaranteed to not overflow, as long as all operands are within the range [0, MOD).
 	 * 
 	 * NOTE: It's recommended to copy the code in this class and inline it within your other functions,
 	 *       since it's cumbersome to write `LongModMath.multiply(a, LongModMath.add(b, c)`,
 	 *       compared to simply writing `multiply(a, add(b, c))`.
 	 */
 	public static class LongModMath {
-		private static final long MOD = 1111111111111111111L;
+		private static final long RAW_MULTIPLY_MAX = 3037000499L;
 
-		private static final int CHUNK_SIZE = 3;
-		private static final int CHUNK_MASK = (1 << CHUNK_SIZE) - 1;
+		private static final int CHUNK_SIZE = Long.SIZE - Long.numberOfLeadingZeros(Long.MAX_VALUE / (MOD + 1) + 1) - 1;
+		private static final long CHUNK_MASK = (1L << CHUNK_SIZE) - 1;
 
-		private static long multiply(long a, long b) {
-			if (a > b) {
-				return multiply(b, a);
+		@SuppressWarnings("unused")
+		public static long multiply(long a, long b) {
+			if (MOD <= RAW_MULTIPLY_MAX) {
+				return a * b % MOD;
 			}
-			if (a == 0) {
-				return 0;
-			}
-			long ans = 0;
-			while (a > 0) {
-				long mask = a & CHUNK_MASK;
-				if (mask > 0) {
-					ans = add(ans, (mask * b) % MOD);
-				}
-				b = (b << CHUNK_SIZE) % MOD;
-				a >>= CHUNK_SIZE;
-			}
-			return ans;
+			return multiplyInternal(a, b);
 		}
-		
-		private static long add(long a, long b) {
+
+		public static long add(long a, long b) {
 			long ans = a + b;
 			if (ans >= MOD) {
 				ans -= MOD;
@@ -161,12 +148,16 @@ public class Combinatorics {
 			return ans;
 		}
 
-		private static long add(long... arr) {
+		public static long add(long... arr) {
 			long ans = 0;
 			for (long x : arr) {
 				ans = add(ans, x);
 			}
 			return ans;
+		}
+
+		public static long subtract(long a, long b) {
+			return add(a, MOD - b);
 		}
 
 		/**
@@ -184,13 +175,33 @@ public class Combinatorics {
 			}
 			return ans;
 		}
-		
+
 		/**
 		 * Computes the modular inverse, such that: ak % MOD = 1, for some k.
 		 * See this page for details:  http://rosettacode.org/wiki/Modular_inverse
 		 */
 		public static long modInverse(long a) {
 			return modPow(a, MOD - 2);
+		}
+
+		private static long multiplyInternal(long a, long b) {
+			if (a > b) {
+				return multiplyInternal(b, a);
+			}
+			if (a == 0) {
+				return 0;
+			}
+
+			long ans = 0;
+			while (a > 0) {
+				long mask = a & CHUNK_MASK;
+				if (mask > 0) {
+					ans = add(ans, (mask * b) % MOD);
+				}
+				b = (b << CHUNK_SIZE) % MOD;
+				a >>= CHUNK_SIZE;
+			}
+			return ans;
 		}
 	}
 
