@@ -162,6 +162,139 @@ public class ArraysAndStrings {
 		}
 	}
 
+	public static class BucketSort {
+		public static <T> T[] sortReversed(T[] items, IntConverter<T> converter) {
+			sort(items, converter);
+			for (int i = 0, j = items.length - 1; i < j; ++i, --j) {
+				T tmp = items[i];
+				items[i] = items[j];
+				items[j] = tmp;
+			}
+			return items;
+		}
+
+		public static <T> T[] sort(T[] items, IntConverter<T> converter) {
+			final int N = items.length;
+
+			int[] values = new int[N];
+			int minVal = Integer.MAX_VALUE;
+			int maxVal = Integer.MIN_VALUE;
+			for (int i = 0; i < items.length; ++i) {
+				values[i] = converter.toInt(items[i]);
+				minVal = Math.min(minVal, values[i]);
+				maxVal = Math.max(maxVal, values[i]);
+			}
+
+			int capacity = maxVal - minVal + 1;
+			ArrayList<ArrayList<T>> buckets = new ArrayList<>(capacity);
+			for (int i = 0; i < capacity; ++i) {
+				buckets.add(null);
+			}
+
+			for (int i = 0; i < items.length; ++i) {
+				int bucketIndex = values[i] - minVal;
+				ArrayList<T> lst = buckets.get(bucketIndex);
+				if (lst == null) {
+					lst = new ArrayList<>();
+					buckets.set(bucketIndex, lst);
+				}
+				lst.add(items[i]);
+			}
+
+			int p = 0;
+			for (ArrayList<T> lst : buckets) {
+				if (lst == null) {
+					continue;
+				}
+				for (T item : lst) {
+					items[p++] = item;
+				}
+			}
+			return items;
+		}
+
+		public static int[] sortIntsReversed(int[] items) {
+			sortInts(items);
+			for (int i = 0, j = items.length - 1; i < j; ++i, --j) {
+				int tmp = items[i];
+				items[i] = items[j];
+				items[j] = tmp;
+			}
+			return items;
+		}
+
+		public static int[] sortInts(int[] items) {
+			final int N = items.length;
+
+			int minVal = Integer.MAX_VALUE;
+			int maxVal = Integer.MIN_VALUE;
+			for (int i = 0; i < items.length; ++i) {
+				minVal = Math.min(minVal, items[i]);
+				maxVal = Math.max(maxVal, items[i]);
+			}
+
+			int capacity = maxVal - minVal + 1;
+			int[] counts = new int[capacity];
+
+			for (int i = 0; i < N; ++i) {
+				int bucketIndex = items[i] - minVal;
+				++counts[bucketIndex];
+			}
+
+			int p = 0;
+			for (int i = 0; i < capacity; ++i) {
+				int origVal = i + minVal;
+				for (int j = 0; j < counts[i]; ++j) {
+					items[p++] = origVal;
+				}
+			}
+			return items;
+		}
+
+		public static char[] sortCharsReversed(char[] items) {
+			sortChars(items);
+			for (int i = 0, j = items.length - 1; i < j; ++i, --j) {
+				char tmp = items[i];
+				items[i] = items[j];
+				items[j] = tmp;
+			}
+			return items;
+		}
+
+		public static char[] sortChars(char[] items) {
+			final int N = items.length;
+
+			int minVal = Integer.MAX_VALUE;
+			int maxVal = Integer.MIN_VALUE;
+			for (int i = 0; i < items.length; ++i) {
+				minVal = Math.min(minVal, items[i]);
+				maxVal = Math.max(maxVal, items[i]);
+			}
+
+			int capacity = maxVal - minVal + 1;
+			int[] counts = new int[capacity];
+
+			for (int i = 0; i < N; ++i) {
+				int bucketIndex = items[i] - minVal;
+				++counts[bucketIndex];
+			}
+
+			int p = 0;
+			for (int i = 0; i < capacity; ++i) {
+				char origVal = (char) (i + minVal);
+				for (int j = 0; j < counts[i]; ++j) {
+					items[p++] = origVal;
+
+				}
+			}
+			return items;
+		}
+
+		public static interface IntConverter<T> {
+			public int toInt(T item);
+		}
+	}
+
 	/**
 	 * Generic binary search to find the first or last value resulting in a matching condition.
 	 */
