@@ -99,16 +99,16 @@ public class ArraysAndStrings {
 	public static class Sort {
 		public static int[] ints(int[] A) {
 			final int N = A.length;
-			
+
 			int[] buf = new int[N];
 			for (int lw = 1; lw < N; lw <<= 1) {
 				int w = lw << 1;
 				for (int i = 0; i + lw <= N; i += w) {
 					int k = Math.min(i + w, N);
-					
+
 					int segLen = k - i;
 					System.arraycopy(A, i, buf, 0, segLen);
-					
+
 					int p = i;
 					int a = 0;
 					int b = lw;
@@ -121,7 +121,7 @@ public class ArraysAndStrings {
 					}
 					if (a < lw) {
 						System.arraycopy(buf, a, A, p, lw - a);
-					} else if (b < segLen) {
+					} else {
 						System.arraycopy(buf, b, A, p, segLen - b);
 					}
 				}
