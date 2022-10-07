@@ -123,7 +123,7 @@ public class Graphs {
 			}
 		}
 	}
-	
+
 	/**
 	 * Computes shortest path between all pairs of vertices.
 	 */
