@@ -123,4 +123,57 @@ public class Graphs {
 			}
 		}
 	}
+	
+	/**
+	 * Computes shortest path between all pairs of vertices.
+	 */
+	public static class FloydWarshall {
+		/**
+		 * NOTE:  Using INF to represent non-existent edges must be in the range [-2^30, 2^30).
+		 * NOTE:  The longest shortest-path must be less than INF.
+		 */
+		public static int[][] ints(int[][] dist) {
+			final int N = dist.length;
+
+			int[][] best = new int[N][];
+			for (int i = 0; i < N; ++i) {
+				best[i] = Arrays.copyOf(dist[i], N);
+			}
+			for (int k = 0; k < N; ++k) {
+				for (int i = 0; i < N; ++i) {
+					for (int j = 0; j < N; ++j) {
+						int d = best[i][k] + best[k][j];
+						if (d < best[i][j]) {
+							best[i][j] = d;
+						}
+					}
+				}
+			}
+			return best;
+		}
+
+		/**
+		 * NOTE:  Using INF to represent non-existent edges must be in the range [-2^62, 2^62).
+		 * NOTE:  The longest shortest-path must be less than INF.
+		 */
+		public static long[][] longs(long[][] dist) {
+			final int N = dist.length;
+
+			long[][] best = new long[N][];
+			for (int i = 0; i < N; ++i) {
+				best[i] = Arrays.copyOf(dist[i], N);
+			}
+			for (int k = 0; k < N; ++k) {
+				for (int i = 0; i < N; ++i) {
+					for (int j = 0; j < N; ++j) {
+						long d = best[i][k] + best[k][j];
+						if (d < best[i][j]) {
+							best[i][j] = d;
+						}
+					}
+				}
+			}
+			return best;
+		}
+	}
 }
