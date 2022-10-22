@@ -132,15 +132,31 @@ public class ArraysAndStrings {
 		public static long[] longs(long[] A) {
 			final int N = A.length;
 
-			Long[] arr = new Long[N];
-			for (int i = 0; i < N; ++i) {
-				arr[i] = A[i];
-			}
+			long[] buf = new long[N];
+			for (int lw = 1; lw < N; lw <<= 1) {
+				int w = lw << 1;
+				for (int i = 0; i + lw <= N; i += w) {
+					int k = Math.min(i + w, N);
 
-			Arrays.sort(arr);
+					int segLen = k - i;
+					System.arraycopy(A, i, buf, 0, segLen);
 
-			for (int i = 0; i < N; ++i) {
-				A[i] = arr[i];
+					int p = i;
+					int a = 0;
+					int b = lw;
+					while (a < lw && b < segLen) {
+						if (buf[a] < buf[b]) {
+							A[p++] = buf[a++];
+						} else {
+							A[p++] = buf[b++];
+						}
+					}
+					if (a < lw) {
+						System.arraycopy(buf, a, A, p, lw - a);
+					} else {
+						System.arraycopy(buf, b, A, p, segLen - b);
+					}
+				}
 			}
 			return A;
 		}
@@ -148,15 +164,31 @@ public class ArraysAndStrings {
 		public static double[] doubles(double[] A) {
 			final int N = A.length;
 
-			Double[] arr = new Double[N];
-			for (int i = 0; i < N; ++i) {
-				arr[i] = A[i];
-			}
+			double[] buf = new double[N];
+			for (int lw = 1; lw < N; lw <<= 1) {
+				int w = lw << 1;
+				for (int i = 0; i + lw <= N; i += w) {
+					int k = Math.min(i + w, N);
 
-			Arrays.sort(arr);
+					int segLen = k - i;
+					System.arraycopy(A, i, buf, 0, segLen);
 
-			for (int i = 0; i < N; ++i) {
-				A[i] = arr[i];
+					int p = i;
+					int a = 0;
+					int b = lw;
+					while (a < lw && b < segLen) {
+						if (buf[a] < buf[b]) {
+							A[p++] = buf[a++];
+						} else {
+							A[p++] = buf[b++];
+						}
+					}
+					if (a < lw) {
+						System.arraycopy(buf, a, A, p, lw - a);
+					} else {
+						System.arraycopy(buf, b, A, p, segLen - b);
+					}
+				}
 			}
 			return A;
 		}
