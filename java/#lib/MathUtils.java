@@ -238,4 +238,55 @@ public class Combinatorics {
 		}
 		return ans;
 	}
+	
+	/**
+	 * Represent fractions in the form: n / d.
+	 * 
+	 * NOTE:  The value of n * d must not exceed the limits of what a 64-bit integer can hold.
+	 * NOTE:  Do not use the private constructor; instead use Fraction.canonical(...).  Otherwise, comparisons won't work! 
+	 */
+	private static class Fraction implements Comparable<Fraction> {
+		public long n, d;
+
+		private Fraction(long n, long d) {
+			this.n = n;
+			this.d = d;
+		}
+
+		@Override
+		public int compareTo(Fraction obj) {
+			Fraction f = (Fraction) obj;
+			return Long.compare(n * f.d, f.n * d);
+		}
+
+		public static Fraction min(Fraction a, Fraction b) {
+			if (a.compareTo(b) < 0) {
+				return a;
+			} else {
+				return b;
+			}
+		}
+
+		public static Fraction max(Fraction a, Fraction b) {
+			if (a.compareTo(b) > 0) {
+				return a;
+			} else {
+				return b;
+			}
+		}
+
+		public static Fraction canonical(int n, int d) {
+			if (n == 0) {
+				return Fraction.ZERO;
+			}
+
+			if (d < 0) {
+				n = -n;
+				d = -d;
+			}
+			return new Fraction(n, d);
+		}
+
+		public static final Fraction ZERO = new Fraction(0, 1);
+	}
 }
