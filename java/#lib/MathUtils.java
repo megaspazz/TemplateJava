@@ -140,6 +140,14 @@ public class Combinatorics {
 			return multiplyInternal(a, b);
 		}
 
+		public static long multiply(long... arr) {
+			long ans = 1;
+			for (long x : arr) {
+				ans = multiply(ans, x);
+			}
+			return ans;
+		}
+
 		public static long add(long a, long b) {
 			long ans = a + b;
 			if (ans >= MOD) {
