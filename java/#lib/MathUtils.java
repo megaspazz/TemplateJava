@@ -125,6 +125,12 @@ public class Combinatorics {
 	 * NOTE: It's recommended to copy the code in this class and inline it within your other functions,
 	 *       since it's cumbersome to write `LongModMath.multiply(a, LongModMath.add(b, c)`,
 	 *       compared to simply writing `multiply(a, add(b, c))`.
+	 * 
+	 * NOTE:  If you need multiple instances of this class, e.g. one modulo for computing an answer,
+	 *        and another modulo for polynomial string hashing, copy and rename a copy of the static class.
+	 *        In each copy, create a class-local static variable named `MOD` for the different modulos.
+	 *        It's recommended to rename the class something shorter to make the calling code less cumbersome.
+	 *        If these classes are not static, there will be performance issues of unknown causes.
 	 */
 	public static class LongModMath {
 		private static final long RAW_MULTIPLY_MAX = 3037000499L;
