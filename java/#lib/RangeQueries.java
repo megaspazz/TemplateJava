@@ -125,7 +125,7 @@ public class RangeQueries {
 
 		public SparseTable(T[] a, Merger<T> merger) {
 			int n = a.length;
-			int p = Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(n - 1));
+			int p = Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(n));
 
 			this.table = new ArrayList<>(p);
 			this.merger = merger;
@@ -174,7 +174,7 @@ public class RangeQueries {
 
 		public PrimitiveSparseTable(PrimitiveType[] a) {
 			int n = a.length;
-			int p = Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(n - 1));
+			int p = Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(n));
 
 			this.table = new PrimitiveType[p][n];
 			System.arraycopy(a, 0, this.table[0], 0, n);
