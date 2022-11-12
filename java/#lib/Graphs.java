@@ -176,4 +176,139 @@ public class Graphs {
 			return best;
 		}
 	}
+
+	/**
+	 * Computes lowest common ancestor of nodes in a tree.
+	 *
+	 * Usage:
+	 *   1)  Build bidirectional graph on LCA.Node, populating only "index" and "neighbors" fields.
+	 *   2)  With root node, initialize LCA in O(N log N) time:
+	 *           LCA lca = new LCA(root);
+	 *   3)  To find lowest common ancestor of two nodes in O(1) time:
+	 *           LCA.Node ancestor = lca.lowestCommonAncestor(u, v);
+	 */
+	public static class LCA {
+		private ArrayList<Integer> idx = new ArrayList<>();
+		private SparseTable tbl;
+
+		public LCA(Node root) {
+			root.initRootTree();
+			ArrayList<Node> lst = traverse(root);
+			tbl = new SparseTable(lst.toArray(new Node[0]));
+		}
+
+		public Node lowestCommonAncestor(Node u, Node v) {
+			return lowestCommonAncestor(u.index, v.index);
+		}
+
+		public Node lowestCommonAncestor(int u, int v) {
+			int left = Math.min(idx.get(u), idx.get(v));
+			int rite = Math.max(idx.get(u), idx.get(v));
+			return tbl.getMin(left, rite);
+		}
+
+		private ArrayList<Node> traverse(Node start) {
+			ArrayList<Node> lst = new ArrayList<>();
+			Stack<Node> nodes = new Stack<>();
+			Stack<Integer> indices = new Stack<>();
+			nodes.push(start);
+			indices.push(0);
+			while (!nodes.isEmpty()) {
+				Node u = nodes.pop();
+				int i = indices.pop();
+				while (u.index >= idx.size()) {
+					idx.add(null);
+				}
+				if (idx.get(u.index) == null) {
+					idx.set(u.index, lst.size());
+				}
+				lst.add(u);
+				if (i < u.neighbors.size()) {
+					nodes.push(u);
+					indices.push(i + 1);
+					nodes.push(u.neighbors.get(i));
+					indices.push(0);
+					++i;
+				}
+			}
+			return lst;
+		}
+
+		public static class Node {
+			public ArrayList<Node> neighbors = new ArrayList<>();
+			public int index;
+			public int level;
+
+			public Node(int idx) {
+				this.index = idx;
+			}
+
+			public void initRootTree() {
+				Stack<Node> nodes = new Stack<>();
+				Stack<Node> parents = new Stack<>();
+				Stack<Integer> levels = new Stack<>();
+				nodes.push(this);
+				parents.push(null);
+				levels.push(0);
+				while (!nodes.isEmpty()) {
+					Node u = nodes.pop();
+					Node p = parents.pop();
+					int lvl = levels.pop();
+					u.neighbors.remove(p);
+					u.level = lvl;
+					for (Node v : u.neighbors) {
+						nodes.push(v);
+						parents.push(u);
+						levels.push(lvl + 1);
+					}
+				}
+			}
+		}
+
+		public static Node nodeMin(Node a, Node b) {
+			if (a == null && b == null) {
+				return null;
+			} else if (a == null) {
+				return b;
+			} else if (b == null) {
+				return a;
+			} else {
+				return (a.level < b.level) ? a : b;
+			}
+		}
+
+		public static class SparseTable {
+			public Node[] arr;
+			public Node[][] table;
+			public int num;
+			public int pow;
+
+			public SparseTable(Node[] a) {
+				int n = a.length;
+				int p = Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(n));
+
+				this.arr = a;
+				this.num = n;
+				this.pow = p;
+				this.table = new Node[n][p];
+
+				for (int i = 0; i < n; i++) {
+					this.table[i][0] = a[i];
+				}
+				for (int j = 1; j < p; j++) {
+					for (int i = 0; i < n; i++) {
+						int off = (1 << (j - 1));
+						Node next = (i + off >= n) ? null : this.table[i + off][j - 1];
+						this.table[i][j] = nodeMin(this.table[i][j - 1], next);
+					}
+				}
+			}
+
+			public Node getMin(int lower, int upper) {
+				int k = 31 - Integer.numberOfLeadingZeros(upper - lower + 1);
+				int off = (1 << k);
+				return nodeMin(this.table[lower][k], this.table[upper - off + 1][k]);
+			}
+		}
+	}
 }
