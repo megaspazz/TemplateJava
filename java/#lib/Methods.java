@@ -3631,10 +3631,12 @@ public class Methods {
 		 *   - If true, points on the hull that are collinear between corner points are included.
 		 *   - If false, it will only include corner points on the hull, removing collinear points between corner points.
 		 */
-		public static Point[] convexHull(Point[] P, boolean includeCollinear) {
+		public static Point[] convexHull(Point[] pts, boolean includeCollinear) {
+			final int n = pts.length;
+			Point[] P = Arrays.copyOf(pts, n);
 			Point[] output = P;
 			if (P.length > 2) {
-				int n = P.length, k = 0;
+				int k = 0;
 				Point[] H = new Point[2 * n];
 
 				Arrays.sort(P, Point.BY_X_THEN_Y);
@@ -3643,15 +3645,17 @@ public class Methods {
 
 				// Build lower hull
 				for (int i = 0; i < n; ++i) {
-					while (k >= 2 && check.isConvex(H[k - 2], H[k - 1], P[i]))
+					while (k >= 2 && check.isConvex(H[k - 2], H[k - 1], P[i])) {
 						k--;
+					}
 					H[k++] = P[i];
 				}
 
 				// Build upper hull
 				for (int i = n - 2, t = k + 1; i >= 0; i--) {
-					while (k >= t && check.isConvex(H[k - 2], H[k - 1], P[i]))
+					while (k >= t && check.isConvex(H[k - 2], H[k - 1], P[i])) {
 						k--;
+					}
 					H[k++] = P[i];
 				}
 				if (k > 1) {
@@ -3681,6 +3685,31 @@ public class Methods {
 					return Long.compare(lhs.Y, rhs.Y);
 				}
 			};
+
+			@Override
+			public int hashCode() {
+				return Long.hashCode(splitmix64(X * 34218511 + Y * 2861 + ADD_MIX));
+			}
+
+			@Override
+			public boolean equals(Object obj) {
+				Point p = (Point) obj;
+				return X == p.X && Y == p.Y;
+			}
+
+			@Override
+			public String toString() {
+				return "(" + X + ", " + Y + ")";
+			}
+
+			private static final long splitmix64(long x) {
+				long z = x + 0x9E3779B97F4A7C15L;
+				z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
+				z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
+				return z ^ (z >>> 31);
+			}
+
+			private static final long ADD_MIX = splitmix64(System.nanoTime());
 		}
 
 		private static final ConvexCheck EXCLUDE_COLLINEAR = new ConvexCheck() {
