@@ -295,4 +295,20 @@ public class Combinatorics {
 
 		public static final Fraction ZERO = new Fraction(0, 1);
 	}
+
+	private static int[] primeDivisorsTo(int n) {
+		int[] div = new int[n + 1];
+		div[1] = 1;
+		for (int i = 2; i < div.length; i++) {
+			if (div[i] == 0) {
+				div[i] = i;
+				if (i < div.length / i) {
+					for (int j = i * i; j < div.length; j += i) {
+						div[j] = i;
+					}
+				}
+			}
+		}
+		return div;
+	}
 }
