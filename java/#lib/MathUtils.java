@@ -131,8 +131,10 @@ public class MathUtils {
 	 *        In each copy, create a class-local static variable named `MOD` for the different modulos.
 	 *        It's recommended to rename the class something shorter to make the calling code less cumbersome.
 	 *        If these classes are not static, there will be performance issues of unknown causes.
+	 * 
+	 * NOTE:  If you don't know the modulo ahead of time, consider using LongModMath instead of the static version.
 	 */
-	public static class LongModMath {
+	public static class LongModMathStatic {
 		private static final long RAW_MULTIPLY_MAX = 3037000499L;
 
 		private static final int CHUNK_SIZE = Long.SIZE - Long.numberOfLeadingZeros(Long.MAX_VALUE / (MOD + 1) + 1) - 1;
@@ -214,6 +216,107 @@ public class MathUtils {
 				}
 				b = (b << CHUNK_SIZE) % MOD;
 				a >>= CHUNK_SIZE;
+			}
+			return ans;
+		}
+	}
+	
+	/**
+	 * Computes arithmetic operations modulo some constant MOD, should be a prime.
+	 * It is guaranteed to not overflow, as long as all operands are within the range [0, MOD).
+	 * 
+	 * NOTE:  For performance reasons, it is recommended to use LongModMathStatic if the modulo
+	 *        is known ahead of time, e.g. given in the problem statement rather than the input.
+	 */
+	public static class LongModMath {
+		private static final long RAW_MULTIPLY_MAX = 3037000499L;
+
+		private final long mod;
+
+		private final int chunkSize;
+		private final long chunkMask;
+
+		public LongModMath(long mod) {
+			this.mod = mod;
+			this.chunkSize = Long.SIZE - Long.numberOfLeadingZeros(Long.MAX_VALUE / (mod + 1) + 1) - 1;
+			this.chunkMask = (1L << chunkSize) - 1;
+		}
+
+		public long multiply(long a, long b) {
+			if (mod <= RAW_MULTIPLY_MAX) {
+				return a * b % mod;
+			}
+			return multiplyInternal(a, b);
+		}
+
+		public long multiply(long... arr) {
+			long ans = 1;
+			for (long x : arr) {
+				ans = multiply(ans, x);
+			}
+			return ans;
+		}
+
+		public long add(long a, long b) {
+			long ans = a + b;
+			if (ans >= mod) {
+				ans -= mod;
+			}
+			return ans;
+		}
+
+		public long add(long... arr) {
+			long ans = 0;
+			for (long x : arr) {
+				ans = add(ans, x);
+			}
+			return ans;
+		}
+
+		public long subtract(long a, long b) {
+			return add(a, mod - b);
+		}
+
+		/**
+		 * Computes the value of (b ^ e) % MOD.
+		 */
+		public long modPow(long b, long e) {
+			long p = b;
+			long ans = 1;
+			while (e > 0) {
+				if ((e & 1) == 1) {
+					ans = multiply(ans, p);
+				}
+				p = multiply(p, p);
+				e >>= 1;
+			}
+			return ans;
+		}
+
+		/**
+		 * Computes the modular inverse, such that: ak % MOD = 1, for some k.
+		 * See this page for details:  http://rosettacode.org/wiki/Modular_inverse
+		 */
+		public long modInverse(long a) {
+			return modPow(a, mod - 2);
+		}
+
+		private long multiplyInternal(long a, long b) {
+			if (a > b) {
+				return multiplyInternal(b, a);
+			}
+			if (a == 0) {
+				return 0;
+			}
+
+			long ans = 0;
+			while (a > 0) {
+				long mask = a & chunkMask;
+				if (mask > 0) {
+					ans = add(ans, (mask * b) % mod);
+				}
+				b = (b << chunkSize) % mod;
+				a >>= chunkSize;
 			}
 			return ans;
 		}
