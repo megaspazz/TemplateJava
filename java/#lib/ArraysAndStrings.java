@@ -546,4 +546,188 @@ public class ArraysAndStrings {
 			return A;
 		}
 	}
+
+	/**
+	 * Computes a polynomial hash to do fast equality checks.
+	 * Excluding collisions, two subarrays are considered equal if their hashes by the `sub` function are equal.
+	 * 
+	 * To reduce collisions, increase `P`, but it comes with a performance penalty.
+	 * Some reasonable primes for P:
+	 *   - 2147483647
+	 *   - 888888877777777
+	 *   - 1111111111111111111
+	 */
+	public static class SubHash {
+		private static final long P = 2147483647;
+		private static final long K = 104729;
+
+		private static final int MAXLEN = 2_000_002;
+
+		private static final LongModMath LMM = new LongModMath(P);
+
+		private static int UPTO = 1;
+		private static long[] POW = new long[MAXLEN];
+		private static long[] INV = new long[MAXLEN];
+		static {
+			POW[0] = 1;
+			POW[1] = K;
+			INV[0] = 1;
+			INV[1] = LMM.modInverse(K);
+		}
+
+		private static void loadPows(int upper) {
+			for (int i = UPTO + 1; i <= upper; ++i) {
+				POW[i] = LMM.multiply(POW[i - 1], POW[1]);
+				INV[i] = LMM.multiply(INV[i - 1], INV[1]);
+			}
+			UPTO = Math.max(UPTO, upper);
+		}
+
+		private final long[] S;
+		private final long[] H;
+
+		public SubHash(long[] x) {
+			loadPows(x.length);
+
+			S = x;
+			H = new long[S.length + 1];
+			for (int i = 0; i < S.length; ++i) {
+				H[i + 1] = LMM.add(H[i], LMM.multiply(S[i], POW[i]));
+			}
+		}
+
+		public SubHash(int[] x) {
+			this(toLongArray(x));
+		}
+
+		public SubHash(char[] x) {
+			this(toLongArray(x));
+		}
+
+		public SubHash(String x) {
+			this(x.toCharArray());
+		}
+
+		public long sub(int loInclusive, int j) {
+			long diff = LMM.subtract(H[j], H[loInclusive]);
+			long hash = LMM.multiply(diff, INV[loInclusive]);
+			return hash;
+		}
+
+		public int length() {
+			return S.length;
+		}
+
+		private static long[] toLongArray(char[] x) {
+			long[] arr = new long[x.length];
+			for (int i = 0; i < x.length; ++i) {
+				arr[i] = x[i];
+			}
+			return arr;
+		}
+
+		private static long[] toLongArray(int[] x) {
+			long[] arr = new long[x.length];
+			for (int i = 0; i < x.length; ++i) {
+				arr[i] = x[i];
+			}
+			return arr;
+		}
+
+		// Included as nested class to make copy-pasting easier.
+		// Refer to MathUtils.LongModMath for the canonical version.
+		public static class LongModMath {
+			private static final long RAW_MULTIPLY_MAX = 3037000499L;
+
+			private final long mod;
+
+			private final int chunkSize;
+			private final long chunkMask;
+
+			public LongModMath(long mod) {
+				this.mod = mod;
+				this.chunkSize = Long.SIZE - Long.numberOfLeadingZeros(Long.MAX_VALUE / (mod + 1) + 1) - 1;
+				this.chunkMask = (1L << chunkSize) - 1;
+			}
+
+			public long multiply(long a, long b) {
+				if (mod <= RAW_MULTIPLY_MAX) {
+					return a * b % mod;
+				}
+				return multiplyInternal(a, b);
+			}
+
+			public long multiply(long... arr) {
+				long ans = 1;
+				for (long x : arr) {
+					ans = multiply(ans, x);
+				}
+				return ans;
+			}
+
+			public long add(long a, long b) {
+				long ans = a + b;
+				if (ans >= mod) {
+					ans -= mod;
+				}
+				return ans;
+			}
+
+			public long add(long... arr) {
+				long ans = 0;
+				for (long x : arr) {
+					ans = add(ans, x);
+				}
+				return ans;
+			}
+
+			public long subtract(long a, long b) {
+				return add(a, mod - b);
+			}
+
+			/**
+			 * Computes the value of (b ^ e) % MOD.
+			 */
+			public long modPow(long b, long e) {
+				long p = b;
+				long ans = 1;
+				while (e > 0) {
+					if ((e & 1) == 1) {
+						ans = multiply(ans, p);
+					}
+					p = multiply(p, p);
+					e >>= 1;
+				}
+				return ans;
+			}
+
+			/**
+			 * Computes the modular inverse, such that: ak % MOD = 1, for some k.
+			 * See this page for details:  http://rosettacode.org/wiki/Modular_inverse
+			 */
+			public long modInverse(long a) {
+				return modPow(a, mod - 2);
+			}
+
+			private long multiplyInternal(long a, long b) {
+				if (a > b) {
+					return multiplyInternal(b, a);
+				}
+				if (a == 0) {
+					return 0;
+				}
+
+				long ans = 0;
+				while (a > 0) {
+					long mask = a & chunkMask;
+					if (mask > 0) {
+						ans = add(ans, (mask * b) % mod);
+					}
+					b = (b << chunkSize) % mod;
+					a >>= chunkSize;
+				}
+				return ans;
+			}
+		}
+	}
 }
