@@ -551,66 +551,51 @@ public class ArraysAndStrings {
 	 * Computes a polynomial hash to do fast equality checks.
 	 * Excluding collisions, two subarrays are considered equal if their hashes by the `sub` function are equal.
 	 * 
-	 * To reduce collisions, increase `P`, but it comes with a performance penalty.
-	 * Some reasonable primes for P:
-	 *   - 2147483647
-	 *   - 888888877777777
-	 *   - 1111111111111111111
+	 * NOTE:  If collisions are a concern, use SubHashMulti instead.
+	 * NOTE:  It is NOT hack-resistant!
 	 */
 	public static class SubHash {
-		private static final long P = 2147483647;
-		private static final long K = 104729;
+		private static final int P = 2147483647;
+		private static final int K = 104723;
 
-		private static final int MAXLEN = 2_000_002;
-
-		private static final LongModMath LMM = new LongModMath(P);
+		private static final int MAX_LEN = 100001;
 
 		private static int UPTO = 1;
-		private static long[] POW = new long[MAXLEN];
-		private static long[] INV = new long[MAXLEN];
+		private static long[] POW26 = new long[MAX_LEN];
+		private static long[] INV26 = new long[MAX_LEN];
 		static {
-			POW[0] = 1;
-			POW[1] = K;
-			INV[0] = 1;
-			INV[1] = LMM.modInverse(K);
+			POW26[0] = 1;
+			POW26[1] = K;
+			INV26[0] = 1;
+			INV26[1] = modInverse(K, P);
 		}
 
 		private static void loadPows(int upper) {
 			for (int i = UPTO + 1; i <= upper; ++i) {
-				POW[i] = LMM.multiply(POW[i - 1], POW[1]);
-				INV[i] = LMM.multiply(INV[i - 1], INV[1]);
+				POW26[i] = (POW26[i - 1] * POW26[1]) % P;
+				INV26[i] = (INV26[i - 1] * INV26[1]) % P;
 			}
 			UPTO = Math.max(UPTO, upper);
 		}
 
-		private final long[] S;
+		private final int[] S;
 		private final long[] H;
 
-		public SubHash(long[] x) {
-			loadPows(x.length);
-
-			S = x;
+		public SubHash(String x) {
+			loadPows(x.length());
+			S = new int[x.length()];
+			for (int i = 0; i < x.length(); ++i) {
+				S[i] = x.charAt(i) - 'a';
+			}
 			H = new long[S.length + 1];
 			for (int i = 0; i < S.length; ++i) {
-				H[i + 1] = LMM.add(H[i], LMM.multiply(S[i], POW[i]));
+				H[i + 1] = (H[i] + (S[i] * POW26[i])) % P;
 			}
 		}
 
-		public SubHash(int[] x) {
-			this(toLongArray(x));
-		}
-
-		public SubHash(char[] x) {
-			this(toLongArray(x));
-		}
-
-		public SubHash(String x) {
-			this(x.toCharArray());
-		}
-
-		public long sub(int loInclusive, int j) {
-			long diff = LMM.subtract(H[j], H[loInclusive]);
-			long hash = LMM.multiply(diff, INV[loInclusive]);
+		public long sub(int i, int j) {
+			long diff = (H[j] - H[i] + P) % P;
+			long hash = (diff * INV26[i]) % P;
 			return hash;
 		}
 
@@ -618,116 +603,28 @@ public class ArraysAndStrings {
 			return S.length;
 		}
 
-		private static long[] toLongArray(char[] x) {
-			long[] arr = new long[x.length];
-			for (int i = 0; i < x.length; ++i) {
-				arr[i] = x[i];
+		/**
+		 * Computes the value of (b ^ e) % mod.
+		 */
+		private static long modPow(long b, long e, long mod) {
+			long p = b;
+			long ans = 1;
+			while (e > 0) {
+				if ((e & 1) == 1) {
+					ans = ans * p % mod;
+				}
+				p = p * p % mod;
+				e >>= 1;
 			}
-			return arr;
+			return ans;
 		}
 
-		private static long[] toLongArray(int[] x) {
-			long[] arr = new long[x.length];
-			for (int i = 0; i < x.length; ++i) {
-				arr[i] = x[i];
-			}
-			return arr;
-		}
-
-		// Included as nested class to make copy-pasting easier.
-		// Refer to MathUtils.LongModMath for the canonical version.
-		public static class LongModMath {
-			private static final long RAW_MULTIPLY_MAX = 3037000499L;
-
-			private final long mod;
-
-			private final int chunkSize;
-			private final long chunkMask;
-
-			public LongModMath(long mod) {
-				this.mod = mod;
-				this.chunkSize = Long.SIZE - Long.numberOfLeadingZeros(Long.MAX_VALUE / (mod + 1) + 1) - 1;
-				this.chunkMask = (1L << chunkSize) - 1;
-			}
-
-			public long multiply(long a, long b) {
-				if (mod <= RAW_MULTIPLY_MAX) {
-					return a * b % mod;
-				}
-				return multiplyInternal(a, b);
-			}
-
-			public long multiply(long... arr) {
-				long ans = 1;
-				for (long x : arr) {
-					ans = multiply(ans, x);
-				}
-				return ans;
-			}
-
-			public long add(long a, long b) {
-				long ans = a + b;
-				if (ans >= mod) {
-					ans -= mod;
-				}
-				return ans;
-			}
-
-			public long add(long... arr) {
-				long ans = 0;
-				for (long x : arr) {
-					ans = add(ans, x);
-				}
-				return ans;
-			}
-
-			public long subtract(long a, long b) {
-				return add(a, mod - b);
-			}
-
-			/**
-			 * Computes the value of (b ^ e) % MOD.
-			 */
-			public long modPow(long b, long e) {
-				long p = b;
-				long ans = 1;
-				while (e > 0) {
-					if ((e & 1) == 1) {
-						ans = multiply(ans, p);
-					}
-					p = multiply(p, p);
-					e >>= 1;
-				}
-				return ans;
-			}
-
-			/**
-			 * Computes the modular inverse, such that: ak % MOD = 1, for some k.
-			 * See this page for details:  http://rosettacode.org/wiki/Modular_inverse
-			 */
-			public long modInverse(long a) {
-				return modPow(a, mod - 2);
-			}
-
-			private long multiplyInternal(long a, long b) {
-				if (a > b) {
-					return multiplyInternal(b, a);
-				}
-				if (a == 0) {
-					return 0;
-				}
-
-				long ans = 0;
-				while (a > 0) {
-					long mask = a & chunkMask;
-					if (mask > 0) {
-						ans = add(ans, (mask * b) % mod);
-					}
-					b = (b << chunkSize) % mod;
-					a >>= chunkSize;
-				}
-				return ans;
-			}
+		/**
+		 * Computes the modular inverse, such that: ak % MOD = 1, for some k.
+		 * See this page for details:  http://rosettacode.org/wiki/Modular_inverse
+		 */
+		public static long modInverse(long a, long mod) {
+			return modPow(a, mod - 2, mod);
 		}
 	}
 
@@ -741,6 +638,9 @@ public class ArraysAndStrings {
 	 * Some additional pairs to consider:
 	 *   - P = 2122331213, K = 104717
 	 *   - P = 2124749677, K = 104711
+	 * 
+	 * NOTE:  If only a single value in `P` is needed, consider using SubHash instead.
+	 * NOTE:  It is NOT hack-resistant!
 	 */
 	public static class SubHashMulti {
 		private static final int[] P = {2131131137, 2147483647};
@@ -748,11 +648,11 @@ public class ArraysAndStrings {
 
 		private static final int HASHES = P.length;
 
-		private static final int MAXLEN = 2_000_002;
+		private static final int MAX_LEN = 2_000_002;
 
 		private static int UPTO = 1;
-		private static long[][] POW = new long[HASHES][MAXLEN];
-		private static long[][] INV = new long[HASHES][MAXLEN];
+		private static long[][] POW = new long[HASHES][MAX_LEN];
+		private static long[][] INV = new long[HASHES][MAX_LEN];
 		static {
 			for (int j = 0; j < HASHES; ++j) {
 				POW[j][0] = 1;
