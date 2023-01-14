@@ -192,6 +192,38 @@ public class ArraysAndStrings {
 			}
 			return A;
 		}
+
+		public static class Reversed {
+			public static int[] ints(int[] A) {
+				Sort.ints(A);
+				for (int i = 0, j = A.length - 1; i < j; ++i, --j) {
+					int tmp = A[i];
+					A[i] = A[j];
+					A[j] = tmp;
+				}
+				return A;
+			}
+
+			public static long[] longs(long[] A) {
+				Sort.longs(A);
+				for (int i = 0, j = A.length - 1; i < j; ++i, --j) {
+					long tmp = A[i];
+					A[i] = A[j];
+					A[j] = tmp;
+				}
+				return A;
+			}
+
+			public static double[] doubles(double[] A) {
+				Sort.doubles(A);
+				for (int i = 0, j = A.length - 1; i < j; ++i, --j) {
+					double tmp = A[i];
+					A[i] = A[j];
+					A[j] = tmp;
+				}
+				return A;
+			}
+		}
 	}
 
 	public static class BucketSort {
