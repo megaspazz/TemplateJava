@@ -137,7 +137,7 @@ public class MathUtils {
 	public static class LongModMathStatic {
 		private static final long RAW_MULTIPLY_MAX = 3037000499L;
 
-		private static final int CHUNK_SIZE = Long.SIZE - Long.numberOfLeadingZeros(Long.MAX_VALUE / (MOD + 1) + 1) - 1;
+		private static final int CHUNK_SIZE = Long.SIZE - Long.numberOfLeadingZeros(Long.MAX_VALUE / MOD) - 1;
 		private static final long CHUNK_MASK = (1L << CHUNK_SIZE) - 1;
 
 		@SuppressWarnings("unused")
@@ -197,7 +197,26 @@ public class MathUtils {
 		 * See this page for details:  http://rosettacode.org/wiki/Modular_inverse
 		 */
 		public static long modInverse(long a) {
-			return modPow(a, MOD - 2);
+			long b = MOD;
+			long x0 = 0, x1 = 1;
+			long t, q;
+
+			while (a > 1) {
+				q = a / b;
+
+				t = b;
+				b = a % b;
+				a = t;
+
+				t = x0;
+				x0 = x1 - q * x0;
+				x1 = t;
+			}
+
+			if (x1 < 0) {
+				x1 += mod;
+			}
+			return x1;
 		}
 
 		private static long multiplyInternal(long a, long b) {
@@ -220,7 +239,7 @@ public class MathUtils {
 			return ans;
 		}
 	}
-	
+
 	/**
 	 * Computes arithmetic operations modulo some constant MOD, should be a prime.
 	 * It is guaranteed to not overflow, as long as all operands are within the range [0, MOD).
@@ -238,7 +257,7 @@ public class MathUtils {
 
 		public LongModMath(long mod) {
 			this.mod = mod;
-			this.chunkSize = Long.SIZE - Long.numberOfLeadingZeros(Long.MAX_VALUE / (mod + 1) + 1) - 1;
+			this.chunkSize = Long.SIZE - Long.numberOfLeadingZeros(Long.MAX_VALUE / mod) - 1;
 			this.chunkMask = (1L << chunkSize) - 1;
 		}
 
@@ -295,10 +314,29 @@ public class MathUtils {
 
 		/**
 		 * Computes the modular inverse, such that: ak % MOD = 1, for some k.
-		 * See this page for details:  http://rosettacode.org/wiki/Modular_inverse
+		 * See this page for details:  https://rosettacode.org/wiki/Modular_inverse#C++
 		 */
 		public long modInverse(long a) {
-			return modPow(a, mod - 2);
+			long b = mod;
+			long x0 = 0, x1 = 1;
+			long t, q;
+
+			while (a > 1) {
+				q = a / b;
+
+				t = b;
+				b = a % b;
+				a = t;
+
+				t = x0;
+				x0 = x1 - q * x0;
+				x1 = t;
+			}
+
+			if (x1 < 0) {
+				x1 += mod;
+			}
+			return x1;
 		}
 
 		private long multiplyInternal(long a, long b) {
