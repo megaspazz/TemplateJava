@@ -1024,26 +1024,26 @@ public class RangeQueries {
 		// Delete these after doing find-and-replace.
 		private static final class PrimitiveKeyType {}
 		private static final class PrimitiveValueType {}
-		
+
 		// Implement the key comparison function, return type should be same as Comparator.compare.
 		private static int compareKey(PrimitiveKeyType a, PrimitiveKeyType b) {
 			throw new UnsupportedOperationException("Not implemented yet.");
-			
+
 			// Example implementation for natural ordering of long keys.
 			// return Long.compare(a, b);
 		}
-		
+
 		// Implement the value merge function.
 		private static PrimitiveValueType mergeValue(PrimitiveValueType a, PrimitiveValueType b) {
 			throw new UnsupportedOperationException("Not implemented yet.");
-			
+
 			// Example implementation for sum.
 			// return a + b;
 		}
-		
+
 		// The default value if nothing in range.
-		private static PrimitiveValueType DEFAULT_VALUE = null;
-		
+		private static final PrimitiveValueType DEFAULT_VALUE = null;
+
 		private AVLTreeNode root;
 
 		public void insert(PrimitiveKeyType key, PrimitiveValueType value) {
@@ -1052,6 +1052,10 @@ public class RangeQueries {
 			}
 			root.insert(key, value);
 			root = rebalance(root);
+		}
+
+		public void increment(PrimitiveKeyType key, PrimitiveValueType value) {
+			insert(key, mergeValue(get(key), value));
 		}
 
 		public PrimitiveValueType get(PrimitiveKeyType k) {
@@ -1117,7 +1121,7 @@ public class RangeQueries {
 				if (curr == null) {
 					return DEFAULT_VALUE;
 				}
-				
+
 				PrimitiveValueType ans = curr.val;
 				if (curr.left != null) {
 					ans = mergeValue(ans, curr.left.getSumGTE(lo));
@@ -1156,7 +1160,7 @@ public class RangeQueries {
 				}
 				return sum;
 			}
-			
+
 			private PrimitiveValueType getSumGTE(PrimitiveKeyType k) {
 				AVLTreeNode curr = this;
 				PrimitiveValueType sum = DEFAULT_VALUE;
