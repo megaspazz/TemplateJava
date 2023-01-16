@@ -311,4 +311,272 @@ public class Graphs {
 			}
 		}
 	}
+
+	/**
+	 * Performs topological sort based on constructed input graph.
+	 * Returns any valid order if possible.
+	 * Returns null if impossible, e.g. has a cycle in the graph.
+	 *
+	 * EXAMPLE USAGE, SEQUENTIAL INT KEY (faster):
+	 *   TopologicalSort.IntGraph g = new TopologicalSort.IntGraph(N_MAX);
+	 *   g.addEdge(1, 2);
+	 *   g.addEdge(1, 3);
+	 *   ... add more edges ...
+	 *   int[] order = TopologicalSort.sort(g);
+	 *   
+	 *
+	 * EXAMPLE USAGE, GENERIC (slower):
+	 *   TopologicalSort.Graph<String, Object> g = new TopologicalSort.Graph();
+	 *   g.addEdge("abc", "xyz");
+	 *   g.addEdge("abc", "123456");
+	 *   ... add more edges ...
+	 *   List<TopologicalSort.NodeData<Integer, Object>> order = TopologicalSort.sort(g);
+	 */
+	public static class TopologicalSort {
+		public static <K, V> List<NodeData<K, V>> sort(Graph<K, V> g) {
+			HashMap<K, Integer> indegRem = new HashMap<>();
+			Queue<Node<K, V>> q = new ArrayDeque<>();
+			for (Node<K, V> u : g.nodes.values()) {
+				if (u.indegree == 0) {
+					q.offer(u);
+				} else {
+					indegRem.put(u.data.id, u.indegree);
+				}
+			}
+			List<NodeData<K, V>> order = new ArrayList<>();
+			while (!q.isEmpty()) {
+				Node<K, V> u = q.poll();
+				order.add(u.data);
+				for (Node<K, V> v : u.next) {
+					int vIndegree = indegRem.get(v.data.id);
+					if (vIndegree == 1) {
+						indegRem.remove(v.data.id);
+						q.offer(v);
+					} else {
+						indegRem.put(v.data.id, vIndegree - 1);
+					}
+				}
+			}
+			if (order.size() != g.nodes.size()) {
+				return null;
+			}
+			return order;
+		}
+
+		public static int[] sort(IntGraph g) {
+			final int N = g.next.length;
+
+			IntDeque q = new IntDeque();
+			int[] indegRem = new int[N];
+			int wantSize = 0;
+			for (int i = 0; i < N; ++i) {
+				if (g.next[i] == null) {
+					continue;
+				}
+
+				++wantSize;
+				if (g.indegree[i] == 0) {
+					q.offer(i);
+				} else {
+					indegRem[i] = g.indegree[i];
+				}
+			}
+
+			IntDeque order = new IntDeque();
+			while (!q.isEmpty()) {
+				int u = q.poll();
+				order.add(u);
+				for (int v : g.next[u].toArray()) {
+					if (--indegRem[v] == 0) {
+						q.offer(v);
+					}
+				}
+			}
+			if (order.size() != wantSize) {
+				return null;
+			}
+			return order.toArray();
+		}
+
+		public static class NodeData<K, V> {
+			public K id;
+			public V value;
+
+			public NodeData(K i, V val) {
+				id = i;
+				value = val;
+			}
+
+			public NodeData(K i) {
+				id = i;
+			}
+		}
+
+		public static class Node<K, V> {
+			public NodeData<K, V> data;
+
+			private ArrayList<Node<K, V>> next = new ArrayList<>();
+			private int indegree = 0;
+
+			public Node(K i, V val) {
+				data = new NodeData<>(i, val);
+			}
+
+			public Node(K i) {
+				data = new NodeData<>(i);
+			}
+		}
+
+		public static class Graph<K, V> {
+			public HashMap<K, Node<K, V>> nodes = new HashMap<>();
+
+			public Node<K, V> getOrCreate(K key) {
+				Node<K, V> u = nodes.getOrDefault(key, null);
+				if (u == null) {
+					u = new Node<>(key);
+					nodes.put(key, u);
+				}
+				return u;
+			}
+
+			public Node<K, V> setData(K key, V val) {
+				Node<K, V> u = getOrCreate(key);
+				u.data.value = val;
+				return u;
+			}
+
+			public void addDirectedEdge(K kFrom, K kTo) {
+				Node<K, V> to = getOrCreate(kTo);
+				++to.indegree;
+				getOrCreate(kFrom).next.add(to);
+			}
+
+			public static <V> Graph<Integer, V> withIntKeys(int loInclusive, int hiExclusive) {
+				Graph<Integer, V> g = new Graph<>();
+				for (int i = loInclusive; i < hiExclusive; ++i) {
+					g.getOrCreate(i);
+				}
+				return g;
+			}
+		}
+
+		public static class IntGraph {
+			private IntDeque[] next;
+			private int[] indegree;
+
+			public IntGraph(int n) {
+				this.next = new IntDeque[n];
+				this.indegree = new int[n];
+			}
+
+			public IntDeque getOrCreate(int id) {
+				IntDeque u = next[id];
+				if (u == null) {
+					u = new IntDeque();
+					next[id] = u;
+				}
+				return u;
+			}
+
+			public void addDirectedEdge(int idFrom, int idTo) {
+				getOrCreate(idTo);
+				++indegree[idTo];
+				getOrCreate(idFrom).add(idTo);
+			}
+		}
+
+		/*
+		 * Trimmed down version of IntDeque for convenience.
+		 * 
+		 * See Lists.java for full implementation:
+		 * https://github.com/megaspazz/TemplateJava/blob/master/java/%23lib/Lists.java
+		 */
+		private static class IntDeque {
+			private int[] arr;
+			private int off;
+			private int len;
+
+			public IntDeque() {
+				this(2);
+			}
+
+			public IntDeque(int capacity) {
+				this.arr = new int[capacity];
+			}
+
+			public void addLast(int x) {
+				if (len == arr.length) {
+					increaseCapacity();
+				}
+				int idx = index(off + len);
+				arr[idx] = x;
+				++len;
+			}
+
+			public int peekFirst() {
+				return arr[off];
+			}
+
+			public int removeFirst() {
+				int ans = peekFirst();
+				off = index(off + 1);
+				--len;
+				return ans;
+			}
+
+			public void add(int x) {
+				addLast(x);
+			}
+
+			public void offer(int x) {
+				addLast(x);
+			}
+
+			public int poll() {
+				return removeFirst();
+			}
+
+			public int size() {
+				return len;
+			}
+
+			public boolean isEmpty() {
+				return size() == 0;
+			}
+
+			public int[] toArray() {
+				if (len == 0) {
+					return new int[0];
+				}
+				int idx = index(off + len);
+				if (idx > off) {
+					return Arrays.copyOfRange(arr, off, idx);
+				}
+				int[] A = new int[len];
+				int endLen = arr.length - off;
+				int startLen = len - endLen;
+				System.arraycopy(arr, off, A, 0, endLen);
+				System.arraycopy(arr, 0, A, endLen, startLen);
+				return A;
+			}
+
+			private void increaseCapacity() {
+				int[] next = new int[arr.length << 1];
+				int endLen = arr.length - off;
+				System.arraycopy(arr, off, next, 0, endLen);
+				System.arraycopy(arr, 0, next, endLen, off);
+				arr = next;
+				off = 0;
+			}
+
+			private int index(int i) {
+				if (i >= arr.length) {
+					i -= arr.length;
+				} else if (i < 0) {
+					i += arr.length;
+				}
+				return i;
+			}
+		}
+	}
 }
