@@ -2,15 +2,17 @@ import java.io.*;
 import java.util.*;
 
 public class TemplateTestCases {
+	private static final int START_TEST_CASE = 1;
+	
 	public static void solveCase(FastIO io, int testCase) {
-
+		
 	}
 
 	public static void solve(FastIO io) {
-		int T = io.nextInt();
+		final int T = io.nextInt();
 
 		for (int t = 0; t < T; ++t) {
-			solveCase(io, t);
+			solveCase(io, START_TEST_CASE + t);
 		}
 	}
 
@@ -41,6 +43,16 @@ public class TemplateTestCases {
 					return -1;
 			}
 			return buf[curChar++];
+		}
+
+		public String readToEnd() {
+			StringBuilder sb = new StringBuilder();
+			int c = read();
+			while (c >= 0) {
+				sb.append((char) c);
+				c = read();
+			}
+			return sb.toString();
 		}
 
 		public String nextLine() {
