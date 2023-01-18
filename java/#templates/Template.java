@@ -3,7 +3,7 @@ import java.util.*;
 
 public class Template {
 	public static void solve(FastIO io) {
-
+		
 	}
 
 	public static class FastIO {
@@ -33,6 +33,16 @@ public class Template {
 					return -1;
 			}
 			return buf[curChar++];
+		}
+
+		public String readToEnd() {
+			StringBuilder sb = new StringBuilder();
+			int c = read();
+			while (c >= 0) {
+				sb.append((char) c);
+				c = read();
+			}
+			return sb.toString();
 		}
 
 		public String nextLine() {
