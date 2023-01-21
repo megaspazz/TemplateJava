@@ -297,8 +297,9 @@ public class UnionFind {
 			}
 
 			void fullSolve() {
-				Map<IntPair, Integer> mp = new HashMap<>();
-				Map<IntPair, Integer> freq = new HashMap<>();
+				// Map<IntPair, Integer> mp = new HashMap<>();
+				// Map<IntPair, Integer> freq = new HashMap<>();
+				Map<IntPair, EdgeData> edges = new HashMap<>();
 				for (int i = 0; i < n; ++i) {
 					nxt[i] = i;
 					sz[i] = 1;
@@ -315,29 +316,32 @@ public class UnionFind {
 					}
 
 					IntPair key = new IntPair(u[i], v[i]);
-					int f = freq.getOrDefault(key, 0);
+					EdgeData e = edges.get(key);
 					if (tp[i] == REMOVE) {
-						if (f == 1) {
-							inv[i] = mp.get(key);
+						if (e != null && e.count == 1) {
+							inv[i] = e.prev;
 							inv[inv[i]] = i;
-							mp.remove(key);
 						} else {
 							tp[i] = NO_OP;
 							u[i] = -1;
 							v[i] = -1;
 						}
-						if (f > 0) {
-							freq.put(key, f - 1);
+						if (e != null && e.count > 0) {
+							--e.count;
 						}
 					} else {
-						if (f == 0) {
-							mp.put(key, i);
+						if (e == null) {
+							e = new EdgeData();
+							edges.put(key, e);
+						}
+						if (e.count == 0) {
+							e.prev = i;
 						} else {
 							tp[i] = NO_OP;
 							u[i] = -1;
 							v[i] = -1;
 						}
-						freq.put(key, f + 1);
+						++e.count;
 					}
 				}
 				res = n;
@@ -372,6 +376,11 @@ public class UnionFind {
 				}
 				return Integer.compare(second, ip.second);
 			}
+		}
+
+		private static class EdgeData {
+			public int prev = -1;
+			public int count;
 		}
 	}
 }
