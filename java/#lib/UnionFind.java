@@ -180,6 +180,7 @@ public class UnionFind {
 			}
 		}
 
+		private static final char NO_OP = '#';
 		private static final char ADD = '+';
 		private static final char REMOVE = '-';
 		private static final char COUNT = '?';
@@ -204,8 +205,6 @@ public class UnionFind {
 
 			private final int[] out;
 			private int oi = 0;
-
-			private final Map<IntPair, Integer> mp = new HashMap<>();
 
 			public Solver(int n, int k, char[] tp, int[] u, int[] v) {
 				this.n = n;
@@ -281,7 +280,7 @@ public class UnionFind {
 				int init = si;
 
 				for (int i = mid + 1; i <= r; ++i) {
-					if (tp[i] != COUNT && inv[i] < l && inv[i] >= 0) {
+					if ((tp[i] == ADD || tp[i] == REMOVE) && inv[i] < l && inv[i] >= 0) {
 						join(u[i], v[i]);
 					}
 				}
@@ -289,7 +288,7 @@ public class UnionFind {
 				undo(init);
 
 				for (int i = l; i <= mid; ++i) {
-					if (tp[i] != COUNT && (inv[i] > r || inv[i] < 0)) {
+					if ((tp[i] == ADD || tp[i] == REMOVE) && (inv[i] > r || inv[i] < 0)) {
 						join(u[i], v[i]);
 					}
 				}
@@ -298,6 +297,8 @@ public class UnionFind {
 			}
 
 			void fullSolve() {
+				Map<IntPair, Integer> mp = new HashMap<>();
+				Map<IntPair, Integer> freq = new HashMap<>();
 				for (int i = 0; i < n; ++i) {
 					nxt[i] = i;
 					sz[i] = 1;
@@ -314,12 +315,29 @@ public class UnionFind {
 					}
 
 					IntPair key = new IntPair(u[i], v[i]);
+					int f = freq.getOrDefault(key, 0);
 					if (tp[i] == REMOVE) {
-						inv[i] = mp.get(key);
-						inv[inv[i]] = i;
-						mp.remove(key);
+						if (f == 1) {
+							inv[i] = mp.get(key);
+							inv[inv[i]] = i;
+							mp.remove(key);
+						} else {
+							tp[i] = NO_OP;
+							u[i] = -1;
+							v[i] = -1;
+						}
+						if (f > 0) {
+							freq.put(key, f - 1);
+						}
 					} else {
-						mp.put(key, i);
+						if (f == 0) {
+							mp.put(key, i);
+						} else {
+							tp[i] = NO_OP;
+							u[i] = -1;
+							v[i] = -1;
+						}
+						freq.put(key, f + 1);
 					}
 				}
 				res = n;
