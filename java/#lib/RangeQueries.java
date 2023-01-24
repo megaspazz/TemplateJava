@@ -467,20 +467,39 @@ public class RangeQueries {
 		}
 
 		// The default value if nothing in range.
-		private static PrimitiveType DEFAULT_VALUE = null;
+		private static final PrimitiveType DEFAULT_VALUE = null;
+
+		public static PrimitiveArraySegmentTree newWithSize(int size, PrimitiveType initialValue) {
+			return new PrimitiveArraySegmentTree(bitsRequired(size), initialValue);
+		}
 
 		public static PrimitiveArraySegmentTree newWithSize(int size) {
-			return new PrimitiveArraySegmentTree(Integer.SIZE - Integer.numberOfLeadingZeros(size));
+			return new PrimitiveArraySegmentTree(bitsRequired(size));
 		}
 
 		private int bits;
 		private PrimitiveType[] values;
 
+		public PrimitiveArraySegmentTree(int bits, PrimitiveType initialValue) {
+			this(bits);
+
+			int nodeCount = values.length;
+			int itemCount = nodeCount >> 1;
+
+			Arrays.fill(values, itemCount, nodeCount, initialValue);
+			for (int i = itemCount - 1; i >= 0; --i) {
+				int L = i << 1;
+				int R = L + 1;
+				values[i] = merge(values[L], values[R]);
+			}
+		}
+
 		public PrimitiveArraySegmentTree(int bits) {
 			this.bits = bits;
 
-			int nodeCount = 1 << (bits + 1);
-			values = new PrimitiveType[nodeCount];
+			int itemCount = 1 << bits;
+			int nodeCount = itemCount << 1;
+			values = new int[nodeCount];
 		}
 
 		public void insert(int index, PrimitiveType data) {
@@ -571,6 +590,10 @@ public class RangeQueries {
 				}
 			}
 			return merge(ans, values[curr]);
+		}
+
+		private static int bitsRequired(int size) {
+			return Integer.SIZE - Integer.numberOfLeadingZeros(size - 1);
 		}
 	}
 
