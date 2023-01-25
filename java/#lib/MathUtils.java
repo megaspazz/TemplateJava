@@ -214,7 +214,7 @@ public class MathUtils {
 			}
 
 			if (x1 < 0) {
-				x1 += mod;
+				x1 += MOD;
 			}
 			return x1;
 		}
