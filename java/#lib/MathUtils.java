@@ -1,3 +1,5 @@
+import java.math.*;
+
 public class MathUtils {
 	private static final int MOD = 1_000_000_007;
 
@@ -451,5 +453,86 @@ public class MathUtils {
 			}
 		}
 		return div;
+	}
+
+	/**
+	 * Given N modulos and remainders, finds the smallest X that satisifies for i in [0, N):
+	 *     X % M[i] = R[i]
+	 */
+	public static class ChineseRemainderTheorem {
+		/**
+		 * Has constraints based on 64-bit signed integers:
+		 *     N * K * K * P <= Long.MAX_VALUE
+		 * 
+		 * Definitions:
+		 *     N = number of modulos
+		 *     K = max(modulos)
+		 *     P = product(modulos)
+		 */
+		public static long solve(long[] modulos, long[] remainders) {
+			final int N = modulos.length;
+
+			long prod = 1;
+			for (int i = 0; i < N; i++) {
+				prod *= modulos[i];
+			}
+
+			long result = 0;
+			for (int i = 0; i < N; i++) {
+				long temp = prod / modulos[i];
+				result += remainders[i] * modInverse(temp, modulos[i]) * temp;
+			}
+			return result % prod;
+		}
+
+		public static BigInteger solve(BigInteger[] modulos, BigInteger[] remainders) {
+			final int N = modulos.length;
+
+			BigInteger[] frontProd = new BigInteger[N + 1];
+			frontProd[0] = BigInteger.ONE;
+			for (int i = 0; i < N; ++i) {
+				frontProd[i + 1] = frontProd[i].multiply(modulos[i]);
+			}
+
+			BigInteger[] backProd = new BigInteger[N + 1];
+			backProd[0] = BigInteger.ONE;
+			for (int i = 0; i < N; ++i) {
+				backProd[i + 1] = backProd[i].multiply(modulos[N - i - 1]);
+			}
+
+			BigInteger result = BigInteger.ZERO;
+			for (int i = 0; i < N; i++) {
+				BigInteger temp = frontProd[i].multiply(backProd[N - i - 1]);
+				result = result.add(remainders[i].multiply(temp.modInverse(modulos[i])).multiply(temp));
+			}
+			return result.mod(frontProd[N]);
+		}
+
+		/**
+		 * Computes the modular inverse, such that: ak % b = 1, for some k.
+		 * See this page for details:  https://rosettacode.org/wiki/Modular_inverse#C++
+		 */
+		public static long modInverse(long a, long mod) {
+			long b = mod;
+			long x0 = 0, x1 = 1;
+			long t, q;
+
+			while (a > 1) {
+				q = a / b;
+
+				t = b;
+				b = a % b;
+				a = t;
+
+				t = x0;
+				x0 = x1 - q * x0;
+				x1 = t;
+			}
+
+			if (x1 < 0) {
+				x1 += mod;
+			}
+			return x1;
+		}
 	}
 }
