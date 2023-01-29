@@ -499,7 +499,7 @@ public class RangeQueries {
 
 			int itemCount = 1 << bits;
 			int nodeCount = itemCount << 1;
-			values = new int[nodeCount];
+			values = new PrimitiveType[nodeCount];
 		}
 
 		public void insert(int index, PrimitiveType data) {
