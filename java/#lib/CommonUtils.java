@@ -68,4 +68,37 @@ public class CommonUtils {
 			return cm;
 		}
 	}
+
+	public static class TopTwoLong {
+		public int count;
+		public long first;
+		public long second;
+
+		public TopTwoLong() {
+			this(Long.MIN_VALUE);
+		}
+
+		public TopTwoLong(long init) {
+			this(init, init);
+		}
+
+		public TopTwoLong(long first, long second) {
+			this.first = first;
+			this.second = second;
+		}
+
+		public void add(long x) {
+			if (x < second) {
+				return;
+			}
+
+			if (x > first) {
+				second = first;
+				first = x;
+			} else {
+				second = x;
+			}
+			count = Math.min(2, count + 1);
+		}
+	}
 }
