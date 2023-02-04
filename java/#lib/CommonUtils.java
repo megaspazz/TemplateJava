@@ -69,6 +69,10 @@ public class CommonUtils {
 		}
 	}
 
+	/**
+	 * Keeps track of the top two elements inserted.
+	 * If `first` and `second` are initialized, `count` will only include elements that were strictly greater than the initial `second` value.
+	 */
 	public static class TopTwoLong {
 		public int count;
 		public long first;
@@ -83,8 +87,8 @@ public class CommonUtils {
 		}
 
 		public TopTwoLong(long first, long second) {
-			this.first = first;
-			this.second = second;
+			this.first = Math.max(first, second);
+			this.second = Math.min(first, second);
 		}
 
 		public void add(long x) {
