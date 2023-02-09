@@ -2,18 +2,28 @@ import java.io.*;
 import java.util.*;
 
 public class Template {
-	public static final TestType TEST_TYPE = TestType.SINGLE;
-	public static final int START_TEST_CASE = 1;
-
 	public static void solveCase(FastIO io, int testCase) {
-
+		
 	}
 
-	// +---------------------+ //
-	// | TEMPLATE CODE BELOW | //
-	// +---------------------+ //
+	// +---------------+ //
+	// | CONFIGURATION | //
+	// +---------------+ //
 
-	public static void solve(FastIO io) {
+	private static final TestType TEST_TYPE = TestType.SINGLE;
+	private static final int START_TEST_CASE = 1;
+
+	private static final boolean USE_THREAD = false;
+	private static final long THREAD_STACK_SIZE = 1L << 28;
+
+	private static final String INPUT_FILE = null;
+	private static final String OUTPUT_FILE = null;
+
+	// +---------------+ //
+	// | TEMPLATE CODE | //
+	// +---------------+ //
+
+	private static void solve(FastIO io) {
 		switch (TEST_TYPE) {
 			case SINGLE: {
 				solveCase(io, START_TEST_CASE);
@@ -29,7 +39,7 @@ public class Template {
 		}
 	}
 
-	public static enum TestType {
+	private static enum TestType {
 		SINGLE,
 		MULTIPLE,
 	}
@@ -225,9 +235,47 @@ public class Template {
 		}
 	}
 
-	public static void main(String[] args) {
-		FastIO io = new FastIO(System.in, System.out);
+	private static void runSolution(FastIO io) {
 		solve(io);
 		io.flush();
+	}
+
+	private static class ThreadedSolution implements Runnable {
+		private FastIO io;
+
+		public ThreadedSolution(FastIO io) {
+			this.io = io;
+		}
+
+		@Override
+		public void run() {
+			runSolution(io);
+		}
+	}
+
+	public static void main(String[] args) throws FileNotFoundException, InterruptedException {
+		InputStream inStream;
+		if (INPUT_FILE == null) {
+			inStream = System.in;
+		} else {
+			inStream = new FileInputStream(INPUT_FILE);
+		}
+
+		OutputStream outStream;
+		if (OUTPUT_FILE == null) {
+			outStream = System.out;
+		} else {
+			outStream = new FileOutputStream(OUTPUT_FILE);
+		}
+
+		FastIO io = new FastIO(inStream, outStream);
+
+		if (USE_THREAD) {
+			Thread t = new Thread(null, new ThreadedSolution(io), "ThreadedSolution", THREAD_STACK_SIZE);
+			t.start();
+			t.join();
+		} else {
+			runSolution(io);
+		}
 	}
 }
