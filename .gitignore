@@ -11,5 +11,5 @@ io/*
 !io/err.txt
 
 # Ignore everything in the src folder except the #hashtag folders.
-java/*
-!java/\#*/
+src/*
+!src/\#*/

@@ -2,30 +2,49 @@
 
 SETLOCAL EnableDelayedExpansion
 
-FOR /f "delims=" %%F IN ('dir /b /s "java\%1.java" 2^>NUL') DO SET filepath=%%F
-FOR %%F IN (%filepath%) DO SET filename=%%~nF
+SET fullpath=%~1
+SET filename=%~n1
+CALL SET filepath=%%fullpath:%~dp0=%%
+
+SET JAVA_BIN=C:\Program Files\Java\jdk1.8.0_361\bin
+SET JAVA=java.exe
+SET JAVAC=javac.exe
+
+IF NOT [%JAVA_BIN] == [] (
+    SET JAVA=%JAVA_BIN%\%JAVA%
+    SET JAVAC=%JAVA_BIN%\%JAVAC%
+)
+
+SET COMPILE="%JAVAC%" -Xlint -d "bin" "%filepath%"
+SET EXECUTE="%JAVA%" -Xmx1024m -Xss256m -cp bin "%filename%"
 
 SET INPUT=io\in.txt
 SET OUTPUT=io\out.txt
 SET ERROR=io\err.txt
 
-SET COMPILE=javac "%filepath%" -d "bin"
-SET EXECUTE=java -Xss256m -cp bin "%filename%"
-
 IF NOT EXIST "bin\" (
     MKDIR "bin"
 )
 
+ECHO.
 IF DEFINED filepath (
     ECHO === Compiling:  %filepath%
     %COMPILE% 2> %ERROR%
     IF ERRORLEVEL 1 (
-        ECHO === Compilation failed.  See "%ERROR%" for details.
         ECHO.
         TYPE "%ERROR%"
         ECHO.
+        ECHO === Compilation failed.  See "%ERROR%" for details.
     ) ELSE (
-        ECHO === Compilation successful.
+        FOR %%A IN (%ERROR%) DO IF NOT %%~zA == 0 SET hasCompilationErrorOutput=true
+        ECHO.
+        IF DEFINED hasCompilationErrorOutput (
+            TYPE "%ERROR%"
+            ECHO.
+            ECHO === Compilation succeeded with warnings.
+        ) ELSE (
+            ECHO === Compilation successful.
+        )
         ECHO.
         %EXECUTE% < %INPUT% > %OUTPUT% 2> %ERROR% ^
             && SET success=true ^
@@ -38,11 +57,11 @@ IF DEFINED filepath (
             ECHO === The program crashed. See "%ERROR%" for details.
             ECHO.
             TYPE "%ERROR%"
-            ECHO.
         )
     )
 ) ELSE (
     ECHO === ERROR: File not found!
 )
+ECHO.
 
 ENDLOCAL
