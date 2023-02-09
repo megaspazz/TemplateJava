@@ -2,11 +2,11 @@ import java.io.*;
 import java.util.*;
 
 public class Template {
-	private static final TestType TEST_TYPE = TestType.SINGLE;
-	private static final int START_TEST_CASE = 1;
+	public static final TestType TEST_TYPE = TestType.SINGLE;
+	public static final int START_TEST_CASE = 1;
 
-	private static void solveCase(FastIO io, int testCase) {
-		
+	public static void solveCase(FastIO io, int testCase) {
+
 	}
 
 	// +---------------------+ //
