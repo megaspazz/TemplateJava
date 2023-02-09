@@ -1,3 +1,5 @@
+import java.util.*;
+
 public class UnionFind {
 	public static class DisjointSet {
 		private int[] rank;
@@ -52,7 +54,7 @@ public class UnionFind {
 		public DisjointSetMerge(int n, T defaultValue, Merger<T> m) {
 			this.rank = new int[n];
 			this.parent = new int[n];
-			this.data = new ArrayList<>();
+			this.data = new ArrayList<>(n);
 			while (this.data.size() < n) {
 				this.data.add(defaultValue);
 			}
