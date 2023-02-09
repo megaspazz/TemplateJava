@@ -1,5 +1,5 @@
-# TemplateGo
-Go Template for Competitive Programming
+# TemplateJava
+Java Template for Competitive Programming
 
 ## Setup
 
