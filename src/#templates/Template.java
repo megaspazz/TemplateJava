@@ -2,8 +2,36 @@ import java.io.*;
 import java.util.*;
 
 public class Template {
-	public static void solve(FastIO io) {
+	private static final TestType TEST_TYPE = TestType.SINGLE;
+	private static final int START_TEST_CASE = 1;
+
+	private static void solveCase(FastIO io, int testCase) {
 		
+	}
+
+	// +---------------------+ //
+	// | TEMPLATE CODE BELOW | //
+	// +---------------------+ //
+
+	public static void solve(FastIO io) {
+		switch (TEST_TYPE) {
+			case SINGLE: {
+				solveCase(io, START_TEST_CASE);
+				break;
+			}
+			case MULTIPLE: {
+				final int T = io.nextInt();
+				for (int t = 0; t < T; ++t) {
+					solveCase(io, START_TEST_CASE + t);
+				}
+				break;
+			}
+		}
+	}
+
+	public static enum TestType {
+		SINGLE,
+		MULTIPLE,
 	}
 
 	public static class FastIO {
