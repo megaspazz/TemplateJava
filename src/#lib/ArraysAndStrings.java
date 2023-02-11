@@ -58,7 +58,42 @@ public class ArraysAndStrings {
 				int R = upperBound;
 				int M = lowerBound;
 				int p = lowerBound + RNG.nextInt(upperBound - lowerBound + 1);
-				
+
+				swap(A, p, L);
+				while (M < R) {
+					if (A[M + 1] < A[M]) {
+						swap(A, M + 1, L);
+						++L;
+						++M;
+					} else if (A[M + 1] > A[M]) {
+						swap(A, M + 1, R);
+						--R;
+					} else {
+						++M;
+					}
+				}
+				if (L <= k && k <= M) {
+					break;
+				}
+				if (k < L) {
+					upperBound = L - 1;
+				} else {
+					lowerBound = M + 1;
+				}
+			}
+			return A[k];
+		}
+
+		public static long get(long[] A, int k) {
+			final int N = A.length;
+			int lowerBound = 0;
+			int upperBound = N - 1;
+			while (lowerBound < upperBound) {
+				int L = lowerBound;
+				int R = upperBound;
+				int M = lowerBound;
+				int p = lowerBound + RNG.nextInt(upperBound - lowerBound + 1);
+
 				swap(A, p, L);
 				while (M < R) {
 					if (A[M + 1] < A[M]) {
@@ -92,6 +127,12 @@ public class ArraysAndStrings {
 
 		private static void swap(int[] A, int i, int j) {
 			int tmp = A[i];
+			A[i] = A[j];
+			A[j] = tmp;
+		}
+
+		private static void swap(long[] A, int i, int j) {
+			long tmp = A[i];
 			A[i] = A[j];
 			A[j] = tmp;
 		}
