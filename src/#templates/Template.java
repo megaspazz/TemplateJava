@@ -3,7 +3,7 @@ import java.util.*;
 
 public class Template {
 	public static void solveCase(FastIO io, int testCase) {
-		
+
 	}
 
 	// +---------------+ //
@@ -184,21 +184,7 @@ public class Template {
 			return c == '\n' || c == '\r' || c == -1;
 		}
 
-		public void print(Object... objects) {
-			for (int i = 0; i < objects.length; i++) {
-				if (i != 0) {
-					writer.print(' ');
-				}
-				writer.print(objects[i]);
-			}
-		}
-
-		public void println(Object... objects) {
-			print(objects);
-			writer.println();
-		}
-
-		public void printArray(int[] arr) {
+		public void print(Object... arr) {
 			for (int i = 0; i < arr.length; i++) {
 				if (i != 0) {
 					writer.print(' ');
@@ -207,24 +193,38 @@ public class Template {
 			}
 		}
 
-		public void printArray(long[] arr) {
+        public void print(int... arr) {
 			for (int i = 0; i < arr.length; i++) {
 				if (i != 0) {
 					writer.print(' ');
 				}
 				writer.print(arr[i]);
 			}
-		}
+        }
 
-		public void printlnArray(int[] arr) {
-			printArray(arr);
+        public void print(long... arr) {
+			for (int i = 0; i < arr.length; i++) {
+				if (i != 0) {
+					writer.print(' ');
+				}
+				writer.print(arr[i]);
+			}
+        }
+
+		public void println(Object... arr) {
+			print(arr);
 			writer.println();
 		}
 
-		public void printlnArray(long[] arr) {
-			printArray(arr);
-			writer.println();
-		}
+        public void println(int... arr) {
+            print(arr);
+            writer.println();
+        }
+
+        public void println(long... arr) {
+            print(arr);
+            writer.println();
+        }
 
 		public void printf(String format, Object... args) {
 			print(String.format(format, args));
