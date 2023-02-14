@@ -3,7 +3,7 @@ import java.util.*;
 
 public class Template {
 	public static void solveCase(FastIO io, int testCase) {
-
+		
 	}
 
 	// +---------------+ //
@@ -183,13 +183,24 @@ public class Template {
 		private boolean isEndOfLine(int c) {
 			return c == '\n' || c == '\r' || c == -1;
 		}
+        public void print(Object val) {
+            writer.print(val);
+        }
+
+        public void print(int val) {
+            writer.print(val);
+        }
+
+        public void print(long val) {
+            writer.print(val);
+        }
 
 		public void print(Object... arr) {
 			for (int i = 0; i < arr.length; i++) {
 				if (i != 0) {
 					writer.print(' ');
 				}
-				writer.print(arr[i]);
+				print(arr[i]);
 			}
 		}
 
@@ -198,7 +209,7 @@ public class Template {
 				if (i != 0) {
 					writer.print(' ');
 				}
-				writer.print(arr[i]);
+				print(arr[i]);
 			}
         }
 
@@ -207,8 +218,23 @@ public class Template {
 				if (i != 0) {
 					writer.print(' ');
 				}
-				writer.print(arr[i]);
+				print(arr[i]);
 			}
+        }
+
+        public void println(Object val) {
+            print(val);
+            writer.println();
+        }
+
+        public void println(int val) {
+            print(val);
+            writer.println();
+        }
+
+        public void println(long val) {
+            print(val);
+            writer.println();
         }
 
 		public void println(Object... arr) {
