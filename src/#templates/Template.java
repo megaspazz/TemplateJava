@@ -183,19 +183,20 @@ public class Template {
 		private boolean isEndOfLine(int c) {
 			return c == '\n' || c == '\r' || c == -1;
 		}
-        public void print(Object val) {
-            writer.print(val);
-        }
 
-        public void print(int val) {
-            writer.print(val);
-        }
+		public void print(String val) {
+			writer.print(val);
+		}
 
-        public void print(long val) {
-            writer.print(val);
-        }
+		public void print(int val) {
+			writer.print(val);
+		}
 
-		public void print(Object... arr) {
+		public void print(long val) {
+			writer.print(val);
+		}
+
+		public void print(String[] arr) {
 			for (int i = 0; i < arr.length; i++) {
 				if (i != 0) {
 					writer.print(' ');
@@ -204,53 +205,50 @@ public class Template {
 			}
 		}
 
-        public void print(int... arr) {
+		public void print(int... arr) {
 			for (int i = 0; i < arr.length; i++) {
 				if (i != 0) {
 					writer.print(' ');
 				}
 				print(arr[i]);
 			}
-        }
+		}
 
-        public void print(long... arr) {
+		public void print(long... arr) {
 			for (int i = 0; i < arr.length; i++) {
 				if (i != 0) {
 					writer.print(' ');
 				}
 				print(arr[i]);
 			}
-        }
+		}
 
-        public void println(Object val) {
-            print(val);
-            writer.println();
-        }
+		public void println(String val) {
+			writer.println(val);
+		}
 
-        public void println(int val) {
-            print(val);
-            writer.println();
-        }
+		public void println(int val) {
+			writer.println(val);
+		}
 
-        public void println(long val) {
-            print(val);
-            writer.println();
-        }
+		public void println(long val) {
+			writer.println(val);
+		}
 
-		public void println(Object... arr) {
+		public void println(String... val) {
+			print(val);
+			writer.println();
+		}
+
+		public void println(int... arr) {
 			print(arr);
 			writer.println();
 		}
 
-        public void println(int... arr) {
-            print(arr);
-            writer.println();
-        }
-
-        public void println(long... arr) {
-            print(arr);
-            writer.println();
-        }
+		public void println(long... arr) {
+			print(arr);
+			writer.println();
+		}
 
 		public void printf(String format, Object... args) {
 			print(String.format(format, args));
