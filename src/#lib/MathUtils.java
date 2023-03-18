@@ -32,6 +32,28 @@ public class MathUtils {
 	}
 
 	/**
+	 * Returns floor(sqrt(x)).
+	 */
+	public static long floorSqrt(long x) {
+		long s = (long) Math.sqrt(x);
+		if (s * s > x) {
+			--s;
+		}
+		return s;
+	}
+
+	/**
+	 * Returns floor(sqrt(x)).
+	 */
+	public static int floorSqrt(int x) {
+		int s = (int) Math.sqrt(x);
+		if (s * s > x) {
+			--s;
+		}
+		return s;
+	}
+
+	/**
 	 * Computes the GCD (greatest common denominator) between all the numbers.
 	 * NOTE: Only works with non-negative numbers!
 	 */
