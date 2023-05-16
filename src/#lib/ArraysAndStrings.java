@@ -468,6 +468,72 @@ public class ArraysAndStrings {
 	}
 
 	/**
+	 * Performs RadixSort with a fixed radix that is a power of two to take advantage of bitwise operators for efficiency.
+	 * If all calls are on large arrays, e.g. at least 50 elements or so, prefer this over normal RadixSort.
+	 */
+	public static class FixedRadixSort {
+		private static final int RADIX_BITS_FOR_INT = 11;
+		private static final int MASK_FOR_INT = (1 << RADIX_BITS_FOR_INT) - 1;
+
+		/**
+		 * Sorts the array "in-place", such that the returned array is the input array with elements in sorted order.
+		 *
+		 * Note that the following must hold true:
+		 *     max(arr) - min(arr) <= Integer.MAX_VALUE
+		 */
+		public static int[] ints(int[] arr) {
+			final int[] origArr = arr;
+			final int N = arr.length;
+
+			int minValue = Integer.MAX_VALUE;
+			for (int x : arr) {
+				minValue = Math.min(minValue, x);
+			}
+
+			int maxValue = Integer.MIN_VALUE;
+			for (int i = 0; i < N; ++i) {
+				arr[i] -= minValue;
+				maxValue = Math.max(maxValue, arr[i]);
+			}
+
+			int[] aux = new int[N];
+			int[] count = new int[1 << RADIX_BITS_FOR_INT];
+			int shift = 0;
+			for (shift = 0; shift < Integer.SIZE && (maxValue >> shift) > 0; shift += RADIX_BITS_FOR_INT) {
+				Arrays.fill(count, 0);
+
+				for (int i = 0; i < N; ++i) {
+					final int idx = (arr[i] >> shift) & MASK_FOR_INT;
+					++count[idx];
+				}
+
+				for (int i = 1; i < count.length; ++i) {
+					count[i] += count[i - 1];
+				}
+
+				for (int i = N - 1; i >= 0; --i) {
+					final int idx = (arr[i] >> shift) & MASK_FOR_INT;
+					aux[--count[idx]] = arr[i];
+				}
+
+				int[] tmp = aux;
+				aux = arr;
+				arr = tmp;
+			}
+
+			for (int i = 0; i < N; ++i) {
+				arr[i] += minValue;
+			}
+
+			if (arr != origArr) {
+				System.arraycopy(arr, 0, origArr, 0, N);
+			}
+
+			return origArr;
+		}
+	}
+
+	/**
 	 * Generic binary search to find the first or last value resulting in a matching condition.
 	 */
 	// EXAMPLE USAGE (find insertion index in sorted array `A`):
