@@ -423,7 +423,7 @@ public class ArraysAndStrings {
 				arr[i] -= minValue;
 				maxValue = Math.max(maxValue, arr[i]);
 			}
-			
+
 			int exp = 1;
 			int[] aux = new int[N];
 			int[] idx = new int[N];
@@ -432,7 +432,7 @@ public class ArraysAndStrings {
 				Arrays.fill(count, 0);
 
 				for (int i = 0; i < N; ++i) {
-					idx[i] = arr[i] / exp % radix; 
+					idx[i] = arr[i] / exp % radix;
 					++count[idx[i]];
 				}
 
@@ -455,15 +455,15 @@ public class ArraysAndStrings {
 				exp *= radix;
 			}
 
-			if (arr != origArr) {
-				System.arraycopy(arr, 0, origArr, 0, N);
-			}
-
 			for (int i = 0; i < N; ++i) {
 				arr[i] += minValue;
 			}
 
-			return arr;
+			if (arr != origArr) {
+				System.arraycopy(arr, 0, origArr, 0, N);
+			}
+
+			return origArr;
 		}
 	}
 
