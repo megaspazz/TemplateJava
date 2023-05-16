@@ -401,6 +401,72 @@ public class ArraysAndStrings {
 		}
 	}
 
+	public static class RadixSort {
+		/**
+		 * Sorts the array "in-place", such that the returned array is the input array with elements in sorted order.
+		 *
+		 * Note that the following must hold true:
+		 *     max(arr) - min(arr) <= Integer.MAX_VALUE
+		 */
+		public static int[] ints(int[] arr) {
+			final int[] origArr = arr;
+			final int N = arr.length;
+			final int radix = Math.max(4, N);
+
+			int minValue = Integer.MAX_VALUE;
+			for (int x : arr) {
+				minValue = Math.min(minValue, x);
+			}
+
+			int maxValue = Integer.MIN_VALUE;
+			for (int i = 0; i < N; ++i) {
+				arr[i] -= minValue;
+				maxValue = Math.max(maxValue, arr[i]);
+			}
+			
+			int exp = 1;
+			int[] aux = new int[N];
+			int[] idx = new int[N];
+			int[] count = new int[radix];
+			while (true) {
+				Arrays.fill(count, 0);
+
+				for (int i = 0; i < N; ++i) {
+					idx[i] = arr[i] / exp % radix; 
+					++count[idx[i]];
+				}
+
+				for (int i = 1; i < radix; ++i) {
+					count[i] += count[i - 1];
+				}
+
+				for (int i = N - 1; i >= 0; --i) {
+					aux[--count[idx[i]]] = arr[i];
+				}
+
+				int[] tmp = aux;
+				aux = arr;
+				arr = tmp;
+
+				if (exp > maxValue / radix) {
+					break;
+				}
+
+				exp *= radix;
+			}
+
+			if (arr != origArr) {
+				System.arraycopy(arr, 0, origArr, 0, N);
+			}
+
+			for (int i = 0; i < N; ++i) {
+				arr[i] += minValue;
+			}
+
+			return arr;
+		}
+	}
+
 	/**
 	 * Generic binary search to find the first or last value resulting in a matching condition.
 	 */
