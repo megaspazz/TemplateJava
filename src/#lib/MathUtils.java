@@ -201,6 +201,16 @@ public class MathUtils {
 			return add(a, MOD - b);
 		}
 
+		private static long normalize(long x) {
+			if (x <= -MOD || x >= MOD) {
+				x %= MOD;
+			}
+			if (x < 0) {
+				x += MOD;
+			}
+			return x;
+		}
+
 		/**
 		 * Computes the value of (b ^ e) % MOD.
 		 */
@@ -321,6 +331,16 @@ public class MathUtils {
 			return add(a, mod - b);
 		}
 
+		public long normalize(long x) {
+			if (x <= -mod || x >= mod) {
+				x %= mod;
+			}
+			if (x < 0) {
+				x += mod;
+			}
+			return x;
+		}
+		
 		/**
 		 * Computes the value of (b ^ e) % MOD.
 		 */
