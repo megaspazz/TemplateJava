@@ -138,6 +138,7 @@ public class Graphs {
 			int[][] best = new int[N][];
 			for (int i = 0; i < N; ++i) {
 				best[i] = Arrays.copyOf(dist[i], N);
+				best[i][i] = 0;
 			}
 			for (int k = 0; k < N; ++k) {
 				for (int i = 0; i < N; ++i) {
@@ -162,6 +163,7 @@ public class Graphs {
 			long[][] best = new long[N][];
 			for (int i = 0; i < N; ++i) {
 				best[i] = Arrays.copyOf(dist[i], N);
+				best[i][i] = 0;
 			}
 			for (int k = 0; k < N; ++k) {
 				for (int i = 0; i < N; ++i) {
