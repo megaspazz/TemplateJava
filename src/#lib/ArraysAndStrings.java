@@ -799,7 +799,7 @@ public class ArraysAndStrings {
 		private static final int P = 2147483647;
 		private static final int K = 104723;
 
-		private static final int MAX_LEN = 100001;
+		private static final int MAX_LEN = 2_000_002;
 
 		private static int UPTO = 1;
 		private static long[] POW26 = new long[MAX_LEN];
