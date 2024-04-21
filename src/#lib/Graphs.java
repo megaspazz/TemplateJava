@@ -125,6 +125,99 @@ public class Graphs {
 	}
 
 	/**
+	  * Find the shortest distance from a source node to all other nodes in the graph.
+	  * For nodes where no path exists, the constant INF will be used.
+	  * Consider modifying the algorithm if a path of length Long.MAX_VALUE can exist.
+	  */
+	// EXAMPLE USAGE:
+	/*
+		Dijkstras.Graph g = new Dijkstras.Graph(n);
+		g.addDirectedEdge(a, b);
+		g.addDirectedEdge(u, v);
+		g.addDirectedEdge(x, y);
+		long[] shortestDistFromStart = Dijkstras.distFrom(g, 0);
+		long[] shortestDistFromEnd = Dijkstras.distFrom(g, n - 1);
+	 */
+	public static class Dijkstras {
+		private static final long INF = Long.MAX_VALUE;
+		
+		public static class Graph {
+			private Node[] nodes;
+			
+			public Graph(int numNodes) {
+				this.nodes = new Node[numNodes];
+				for (int i = 0; i < numNodes; ++i) {
+					this.nodes[i] = new Node();
+				}
+			}
+			
+			public void addDirectedEdge(int u, int v, long w) {
+				nodes[u].edges.add(new Edge(v, w));
+			}
+			
+			public void addUndirectedEdge(int u, int v, long w) {
+				addDirectedEdge(u, v, w);
+				addDirectedEdge(v, u, w);
+			}
+		}
+		
+		public static long[] distFrom(Graph g, int start) {
+			final int N = g.nodes.length;
+
+			long[] dist = new long[N];
+			Arrays.fill(dist, Long.MAX_VALUE);
+			
+			PriorityQueue<PQE> pq = new PriorityQueue<>();
+			pq.offer(new PQE(start, 0));
+			while (!pq.isEmpty()) {
+				PQE elt = pq.poll();
+
+				int u = elt.nodeId;
+				long d = elt.dist;
+
+				if (d >= dist[u]) {
+					continue;
+				}
+				dist[u] = d;
+
+				for (Edge e : g.nodes[u].edges) {
+					pq.offer(new PQE(e.dest, d + e.weight));
+				}
+			}
+			return dist;
+		}
+		
+		private static class PQE implements Comparable<PQE> {
+			public int nodeId;
+			public long dist;
+
+			public PQE(int nodeId, long dist) {
+				this.nodeId = nodeId;
+				this.dist = dist;
+			}
+
+			@Override
+			public int compareTo(PQE other) {
+				return Long.compare(dist, other.dist);
+			}
+		}
+
+		private static class Node {
+			public List<Edge> edges = new LinkedList<>();
+		}
+
+		private static class Edge {
+			public int dest;
+			public long weight;
+
+			public Edge(int dest, long weight) {
+				this.dest = dest;
+				this.weight = weight;
+			}
+		}
+	}
+
+	/**
 	 * Computes shortest path between all pairs of vertices.
 	 */
 	public static class FloydWarshall {
