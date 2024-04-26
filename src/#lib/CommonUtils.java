@@ -105,6 +105,50 @@ public class CommonUtils {
 			count = Math.min(2, count + 1);
 		}
 	}
+
+	/**
+	 * Keeps track of the bottom two elements inserted.
+	 * If `first` and `second` are initialized, `count` will only include elements that were strictly less than the initial `second` value.
+	 */
+	public static class BottomTwoLong {
+		public int count;
+		public long first;
+		public long second;
+
+		public BottomTwoLong() {
+			this(Long.MAX_VALUE);
+		}
+
+		public BottomTwoLong(long init) {
+			this(init, init);
+		}
+
+		public BottomTwoLong(long first, long second) {
+			this.first = Math.max(first, second);
+			this.second = Math.min(first, second);
+		}
+		
+		public BottomTwoLong(long[] arr) {
+			this();
+			for (long x : arr) {
+				add(x);
+			}
+		}
+
+		public void add(long x) {
+			if (x > second) {
+				return;
+			}
+
+			if (x < first) {
+				second = first;
+				first = x;
+			} else {
+				second = x;
+			}
+			count = Math.min(2, count + 1);
+		}
+	}
 	
 	public static class IntMultiSet {
 		public final int offset;
