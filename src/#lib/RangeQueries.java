@@ -199,23 +199,23 @@ public class RangeQueries {
 
 	/**
 	 * Here is a generic Segment Tree implementation.
-	 * It requires a Combiner to define how to merge values.
-	 * It takes an optional DefaultProvider to replace null values; otherwise, the Combiner will need to manually handle null values.
+	 * It requires a Merger to define how to merge values.
+	 * Take care to handle null values: consider using an optional DefaultProvider to replace null values or the NullMerger.
 	 *
 	 * NOTE: Slightly prefer ArraySegmentTree for performance!
 	 */
 	public static class GenericSegmentTree<T> {
 		public ArrayList<SegmentTreeNode> leaves;
 		public SegmentTreeNode root;
-		public Combiner<T> combiner;
+		public Merger<T> merger;
 		public DefaultProvider<T> defaultProvider;
 
-		public GenericSegmentTree(int n, Combiner<T> cmb) {
-			this(n, cmb, null);
+		public GenericSegmentTree(int n, Merger<T> merger) {
+			this(n, merger, null);
 		}
 
-		public GenericSegmentTree(int n, Combiner<T> cmb, DefaultProvider<T> defProv) {
-			this.combiner = cmb;
+		public GenericSegmentTree(int n, Merger<T> merger, DefaultProvider<T> defProv) {
+			this.merger = merger;
 			this.defaultProvider = defProv;
 			this.leaves = new ArrayList<SegmentTreeNode>(n);
 			for (int i = 0; i < n; ++i) {
@@ -224,8 +224,8 @@ public class RangeQueries {
 			this.root = new SegmentTreeNode(null, 0, n - 1);
 		}
 
-		public GenericSegmentTree(T[] vals, Combiner<T> cmb, DefaultProvider<T> defProv) {
-			this(vals.length, cmb, defProv);
+		public GenericSegmentTree(T[] vals, Merger<T> merger, DefaultProvider<T> defProv) {
+			this(vals.length, merger, defProv);
 			for (int i = 0; i < vals.length; i++) {
 				this.insert(i, vals[i]);
 			}
@@ -242,9 +242,27 @@ public class RangeQueries {
 		public T get(int lowerInclusive, int upperInclusive) {
 			return this.root.getRange(lowerInclusive, upperInclusive);
 		}
-
-		public static interface Combiner<T> {
-			public T combine(T lhs, T rhs);
+		
+		public static interface Merger<T> {
+			public T merge(T a, T b);
+		}
+		
+		public static abstract class NullMerger<T> implements Merger<T> {
+			@Override
+			public T merge(T a, T b) {
+				if (a == null && b == null) {
+					return null;
+				}
+				if (a == null) {
+					return b;
+				}
+				if (b == null) {
+					return a;
+				}
+				return mergeNonNull(a, b);
+			}
+			
+			public abstract T mergeNonNull(T a, T b);
 		}
 
 		public static interface DefaultProvider<T> {
@@ -284,7 +302,7 @@ public class RangeQueries {
 			public void update() {
 				if (this.left != null && this.rite != null) {
 					// access outer class GenericSegmentTree
-					this.val = combiner.combine(this.left.getValueOrDefault(), this.rite.getValueOrDefault());
+					this.val = merger.merge(this.left.getValueOrDefault(), this.rite.getValueOrDefault());
 				} else if (this.left != null) {
 					this.val = this.left.getValueOrDefault();
 				} else if (this.rite != null) {
@@ -304,7 +322,7 @@ public class RangeQueries {
 					return defaultProvider.getDefault();
 				} else {
 					// access outer class GenericSegmentTree
-					return combiner.combine(this.left.getRange(lower, upper), this.rite.getRange(lower, upper));
+					return merger.merge(this.left.getRange(lower, upper), this.rite.getRange(lower, upper));
 				}
 			}
 			
@@ -323,6 +341,7 @@ public class RangeQueries {
 	/**
 	 * Generic segment tree using a backing array.  Operations are implemented iteratively.
 	 * It is required to supply a T[] as template, as generic-typed arrays can't be constructed in Java.
+	 * The defaultValue must have the property that:  merge(defaultValue, defaultValue) == defaultValue.
 	 */
 	public static class ArraySegmentTree<T> {
 		public static <T> ArraySegmentTree<T> newWithSize(int size, Merger<T> merger, T defaultValue, T[] template) {
@@ -446,6 +465,24 @@ public class RangeQueries {
 		
 		public static interface Merger<T> {
 			public T merge(T a, T b);
+		}
+		
+		public static abstract class NullMerger<T> implements Merger<T> {
+			@Override
+			public T merge(T a, T b) {
+				if (a == null && b == null) {
+					return null;
+				}
+				if (a == null) {
+					return b;
+				}
+				if (b == null) {
+					return a;
+				}
+				return mergeNonNull(a, b);
+			}
+			
+			public abstract T mergeNonNull(T a, T b);
 		}
 	}
 
