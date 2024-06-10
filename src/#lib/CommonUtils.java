@@ -73,6 +73,48 @@ public class CommonUtils {
 	 * Keeps track of the top two elements inserted.
 	 * If `first` and `second` are initialized, `count` will only include elements that were strictly greater than the initial `second` value.
 	 */
+	public static class TopTwoInt {
+		public int count;
+		public int first;
+		public int second;
+
+		public TopTwoInt() {
+			this(Integer.MIN_VALUE);
+		}
+
+		public TopTwoInt(int init) {
+			this(init, init);
+		}
+
+		public TopTwoInt(int first, int second) {
+			this.first = Math.max(first, second);
+			this.second = Math.min(first, second);
+		}
+
+		public void add(int x) {
+			if (x < second) {
+				return;
+			}
+
+			if (x > first) {
+				second = first;
+				first = x;
+			} else {
+				second = x;
+			}
+			count = Math.min(2, count + 1);
+		}
+		
+		@Override
+		public String toString() {
+			return "[" + first + ", " + second + "]";
+		}
+	}
+
+	/**
+	 * Keeps track of the top two elements inserted.
+	 * If `first` and `second` are initialized, `count` will only include elements that were strictly greater than the initial `second` value.
+	 */
 	public static class TopTwoLong {
 		public int count;
 		public long first;
