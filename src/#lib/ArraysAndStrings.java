@@ -798,6 +798,7 @@ public class ArraysAndStrings {
 	public static class SubHash {
 		private static final int P = 2147483647;
 		private static final int K = 104723;
+		private static final int OFFSET = 7;
 
 		private static final int MAX_LEN = 2_000_002;
 
@@ -826,7 +827,7 @@ public class ArraysAndStrings {
 			loadPows(x.length());
 			S = new int[x.length()];
 			for (int i = 0; i < x.length(); ++i) {
-				S[i] = x.charAt(i) - 'a';
+				S[i] = x.charAt(i) - 'a' + OFFSET;
 			}
 			H = new long[S.length + 1];
 			for (int i = 0; i < S.length; ++i) {
