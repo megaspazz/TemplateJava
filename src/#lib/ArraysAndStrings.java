@@ -873,14 +873,14 @@ public class ArraysAndStrings {
 	/**
 	 * Computes multiple polynomial hashes to do fast equality checks.
 	 * Excluding collisions, two subarrays are considered equal if their hashes by the `sub` function are equal.
-	 * 
+	 *
 	 * To reduce collisions, add new distinct primes to `P` (modulo) and `K` (base), but it will cause a performance penalty.
 	 * Note that the choices of P and K must not exceed 2147483647, e.g. it must fit within a signed 32-bit integer.
-	 * 
+	 *
 	 * Some additional pairs to consider:
 	 *   - P = 2122331213, K = 104717
 	 *   - P = 2124749677, K = 104711
-	 * 
+	 *
 	 * NOTE:  If only a single value in `P` is needed, consider using SubHash instead.
 	 * NOTE:  It is NOT hack-resistant!
 	 */
@@ -889,6 +889,13 @@ public class ArraysAndStrings {
 		private static final int[] K = {104723, 104729};
 
 		private static final int HASHES = P.length;
+
+		private static final int[] OFFSETS = new int[HASHES];
+		static {
+			for (int i = 0; i < HASHES; ++i) {
+				OFFSETS[i] = ThreadLocalRandom.current().nextInt(P[i]);
+			}
+		}
 
 		private static final int MAX_LEN = 2_000_002;
 
