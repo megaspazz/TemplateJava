@@ -957,7 +957,7 @@ public class ArraysAndStrings {
 			H = new long[HASHES][S.length + 1];
 			for (int j = 0; j < HASHES; ++j) {
 				for (int i = 0; i < S.length; ++i) {
-					H[j][i + 1] = (H[j][i] + S[i] * POW[j][i]) % P[j];
+					H[j][i + 1] = (H[j][i] + (S[i] + OFFSETS[j]) % P[j] * POW[j][i]) % P[j];
 				}
 			}
 		}
