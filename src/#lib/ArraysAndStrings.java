@@ -791,58 +791,84 @@ public class ArraysAndStrings {
 	/**
 	 * Computes a polynomial hash to do fast equality checks.
 	 * Excluding collisions, two subarrays are considered equal if their hashes by the `sub` function are equal.
-	 * 
+	 *
 	 * NOTE:  If collisions are a concern, use SubHashMulti instead.
 	 * NOTE:  It is NOT hack-resistant!
 	 */
 	public static class SubHash {
 		private static final int P = 2147483647;
 		private static final int K = 104723;
-		private static final int OFFSET = 7;
+		private static final int OFFSET = ThreadLocalRandom.current().nextInt(P);
 
 		private static final int MAX_LEN = 2_000_002;
 
 		private static int UPTO = 1;
-		private static long[] POW26 = new long[MAX_LEN];
-		private static long[] INV26 = new long[MAX_LEN];
+		private static long[] POW = new long[MAX_LEN];
+		private static long[] INV = new long[MAX_LEN];
 		static {
-			POW26[0] = 1;
-			POW26[1] = K;
-			INV26[0] = 1;
-			INV26[1] = modInverse(K, P);
+			POW[0] = 1;
+			POW[1] = K;
+			INV[0] = 1;
+			INV[1] = modInverse(K, P);
 		}
 
 		private static void loadPows(int upper) {
 			for (int i = UPTO + 1; i <= upper; ++i) {
-				POW26[i] = (POW26[i - 1] * POW26[1]) % P;
-				INV26[i] = (INV26[i - 1] * INV26[1]) % P;
+				POW[i] = (POW[i - 1] * POW[1]) % P;
+				INV[i] = (INV[i - 1] * INV[1]) % P;
 			}
 			UPTO = Math.max(UPTO, upper);
 		}
 
-		private final int[] S;
+		private final long[] S;
 		private final long[] H;
 
-		public SubHash(String x) {
-			loadPows(x.length());
-			S = new int[x.length()];
-			for (int i = 0; i < x.length(); ++i) {
-				S[i] = x.charAt(i) - 'a' + OFFSET;
-			}
+		public SubHash(long[] x) {
+			loadPows(x.length);
+
+			S = Arrays.copyOf(x, x.length);
 			H = new long[S.length + 1];
 			for (int i = 0; i < S.length; ++i) {
-				H[i + 1] = (H[i] + (S[i] * POW26[i])) % P;
+				H[i + 1] = (H[i] + (S[i] + OFFSET) % P * POW[i]) % P;
 			}
+		}
+
+		public SubHash(int[] x) {
+			this(toLongArray(x));
+		}
+
+		public SubHash(char[] x) {
+			this(toLongArray(x));
+		}
+
+		public SubHash(String x) {
+			this(x.toCharArray());
 		}
 
 		public long sub(int i, int j) {
 			long diff = (H[j] - H[i] + P) % P;
-			long hash = (diff * INV26[i]) % P;
+			long hash = (diff * INV[i]) % P;
 			return hash;
 		}
 
 		public int length() {
 			return S.length;
+		}
+
+		private static long[] toLongArray(char[] x) {
+			long[] arr = new long[x.length];
+			for (int i = 0; i < x.length; ++i) {
+				arr[i] = x[i];
+			}
+			return arr;
+		}
+
+		private static long[] toLongArray(int[] x) {
+			long[] arr = new long[x.length];
+			for (int i = 0; i < x.length; ++i) {
+				arr[i] = x[i];
+			}
+			return arr;
 		}
 
 		/**
