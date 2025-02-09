@@ -16,6 +16,18 @@ public class CommonUtils {
 			return getOrDefault(k, 0);
 		}
 
+		public void decrement(T k) {
+			decrement(k, 1);
+		}
+
+		public void decrement(T k, int v) {
+			increment(k, -v);
+		}
+
+		public void increment(T k) {
+			increment(k, 1);
+		}
+
 		public void increment(T k, int v) {
 			total += v;
 			int next = getCount(k) + v;
