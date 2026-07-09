@@ -176,6 +176,18 @@ public class Template {
 			return arr;
 		}
 
+		public String[] nextStringArray(int n) {
+			return nextStringArray(n, 0);
+		}
+
+		public String[] nextStringArray(int n, int off) {
+			String[] arr = new String[n + off];
+			for (int i = 0; i < n; i++) {
+				arr[i + off] = nextString();
+			}
+			return arr;
+		}
+
 		private boolean isSpaceChar(int c) {
 			return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == -1;
 		}
@@ -278,24 +290,12 @@ public class Template {
 	}
 
 	public static void main(String[] args) throws FileNotFoundException, InterruptedException {
-		InputStream inStream;
-		if (INPUT_FILE == null) {
-			inStream = System.in;
-		} else {
-			inStream = new FileInputStream(INPUT_FILE);
-		}
-
-		OutputStream outStream;
-		if (OUTPUT_FILE == null) {
-			outStream = System.out;
-		} else {
-			outStream = new FileOutputStream(OUTPUT_FILE);
-		}
-
-		FastIO io = new FastIO(inStream, outStream);
+		final InputStream inStream = INPUT_FILE == null ? System.in : new FileInputStream(INPUT_FILE);
+		final OutputStream outStream = OUTPUT_FILE == null ? System.out : new FileOutputStream(OUTPUT_FILE);
+		final FastIO io = new FastIO(inStream, outStream);
 
 		if (USE_THREAD) {
-			Thread t = new Thread(null, new ThreadedSolution(io), "ThreadedSolution", THREAD_STACK_SIZE);
+			final Thread t = new Thread(null, new ThreadedSolution(io), "ThreadedSolution", THREAD_STACK_SIZE);
 			t.start();
 			t.join();
 		} else {
