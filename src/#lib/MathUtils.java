@@ -70,20 +70,12 @@ public class MathUtils {
 	 * NOTE: Only works with non-negative numbers!
 	 */
 	public static int gcd(int a, int b) {
-		if (a < b) {
-			return gcd(b, a);
+		while (b != 0) {
+			long r = a % b;
+			a = b;
+			b = r;
 		}
-
-		if (b == 0) {
-			return a;
-		}
-
-		int r = a % b;
-		if (r == 0) {
-			return b;
-		}
-
-		return gcd(b, r);
+		return a;
 	}
 
 	/**
@@ -115,20 +107,12 @@ public class MathUtils {
 	 * NOTE: Only works with non-negative numbers!
 	 */
 	public static long gcd(long a, long b) {
-		if (a < b) {
-			return gcd(b, a);
+		while (b != 0) {
+			long r = a % b;
+			a = b;
+			b = r;
 		}
-
-		if (b == 0) {
-			return a;
-		}
-
-		long r = a % b;
-		if (r == 0) {
-			return b;
-		}
-
-		return gcd(b, r);
+		return a;
 	}
 
 	/**
