@@ -345,15 +345,15 @@ public class RangeQueries {
 	 */
 	public static class ArraySegmentTree<T> {
 		public static <T> ArraySegmentTree<T> newWithSize(int size, Merger<T> merger, T defaultValue, T[] template) {
-			return new ArraySegmentTree<T>(Integer.SIZE - Integer.numberOfLeadingZeros(size), merger, defaultValue, template);
+			return new ArraySegmentTree<T>(Integer.SIZE - Integer.numberOfLeadingZeros(size - 1), merger, defaultValue, template);
 		}
-		
+
 		private int bits;
 		private T[] values;
-		
+
 		private Merger<T> merger;
 		private T defaultValue;
-		
+
 		public ArraySegmentTree(int bits, Merger<T> merger, T defaultValue, T[] template) {
 			this.bits = bits;
 			this.merger = merger;
@@ -362,9 +362,9 @@ public class RangeQueries {
 			int nodeCount = 1 << (bits + 1);
 			values = Arrays.copyOf(template, nodeCount);
 		}
-		
+
 		public void insert(int index, T data) {
-			int curr = (values.length >> 1) + index;
+			int curr = (1 << bits) + index;
 			values[curr] = data;
 			curr >>= 1;
 			while (curr > 0) {
@@ -381,7 +381,7 @@ public class RangeQueries {
 		}
 
 		public T get(int index) {
-			int i = (values.length >> 1) + index;
+			int i = (1 << bits) + index;
 			return values[i];
 		}
 
@@ -389,70 +389,74 @@ public class RangeQueries {
 			if (loInclusive > hiInclusive) {
 				return defaultValue;
 			}
-			
-			int curr = 1;
-			for (int d = 0; d < bits ; ++d) {
-				int shift = bits - d;
-				int LL = (curr << shift) - (values.length >> 1);
-				int LR = LL + (1 << (shift - 1)) - 1;
-				int RL = LR + 1;
-				int lCurr = curr << 1;
-				int rCurr = lCurr + 1;
-				if (hiInclusive <= LR) {
-					curr = lCurr;
-				} else if (loInclusive >= RL) {
-					curr = rCurr;
-				} else {
-					T leftValue = getGTE(loInclusive, lCurr, d + 1);
-					T rightValue = getLTE(hiInclusive, rCurr, d + 1);
-					return merge(leftValue, rightValue);
-				}
+
+			int leafCount = 1 << bits;
+			int loInclLeaf = loInclusive + leafCount;
+			int hiExclLeaf = hiInclusive + leafCount + 1;
+
+			if (loInclLeaf + 1 == hiExclLeaf) {
+				return values[loInclLeaf];
 			}
-			return values[curr];
-		}
-		
-		private T getGTE(int loInclusive, int curr, int dStart) {
-			T ans = defaultValue;
-			for (int d = dStart; d < bits; ++d) {
+
+			int subRoot = 1;
+			for (int d = 0; d < bits; ++d) {
 				int shift = bits - d;
-				int LL = (curr << shift) - (values.length >> 1);
-				int LR = LL + (1 << (shift - 1)) - 1;
-				int RL = LR + 1;
-				int rCurr = (curr << 1) + 1;
-				if (loInclusive <= LL) {
+				int L = subRoot << shift;
+				int R = L + (1 << shift);
+				int M = (L + R) >> 1;
+
+				if (L == loInclLeaf && R == hiExclLeaf) {
+					return values[subRoot];
+				}
+
+				if (hiExclLeaf <= M) {
+					subRoot <<= 1;
+				} else if (loInclLeaf >= M) {
+					subRoot = (subRoot << 1) + 1;
+				} else {
 					break;
 				}
-				if (loInclusive >= RL) {
-					curr = rCurr;
-				} else {
-					ans = merge(ans, values[rCurr]);
-					curr <<= 1;
-				}
 			}
-			return merge(ans, values[curr]);
-		}
-		
-		private T getLTE(int hiInclusive, int curr, int dStart) {
-			T ans = defaultValue;
-			for (int d = dStart; d < bits; ++d) {
+
+			int dSubRoot = Integer.SIZE - Integer.numberOfLeadingZeros(subRoot) - 1;
+
+			T leftValue = values[loInclLeaf];
+			int leftSubRootStart = subRoot << 1;
+			int leftSubRoot = loInclLeaf;
+			while ((leftSubRoot & 1) == 0 && leftSubRoot > leftSubRootStart) {
+				leftSubRoot >>= 1;
+				leftValue = values[leftSubRoot];
+			}
+			while (leftSubRoot > leftSubRootStart) {
+				if ((leftSubRoot & 1) == 0) {
+					leftValue = merge(leftValue, values[leftSubRoot + 1]);
+				}
+				leftSubRoot >>= 1;
+			}
+
+			T rightValue = defaultValue;
+			int rightSubRoot = (subRoot << 1) + 1;
+			for (int d = dSubRoot + 1; d <= bits; ++d) {
 				int shift = bits - d;
-				int LL = (curr << shift) - (values.length >> 1);
-				int LR = LL + (1 << (shift - 1)) - 1;
-				int RR = LL + (1 << shift) - 1;
-				int lCurr = curr << 1;
-				if (hiInclusive >= RR) {
+				int L = rightSubRoot << shift;
+				int R = L + (1 << shift);
+				int M = (L + R) >> 1;
+
+				if (hiExclLeaf == R) {
+					rightValue = merge(rightValue, values[rightSubRoot]);
 					break;
 				}
-				if (hiInclusive <= LR) {
-					curr = lCurr;
+				if (hiExclLeaf <= M) {
+					rightSubRoot <<= 1;
 				} else {
-					ans = merge(ans, values[lCurr]);
-					curr = lCurr + 1;
+					rightSubRoot = (rightSubRoot << 1) + 1;
+					rightValue = merge(rightValue, values[rightSubRoot - 1]);
 				}
 			}
-			return merge(ans, values[curr]);
+
+			return merge(leftValue, rightValue);
 		}
-		
+
 		private T merge(T a, T b) {
 			if (a == null) {
 				a = defaultValue;
@@ -462,11 +466,11 @@ public class RangeQueries {
 			}
 			return merger.merge(a, b);
 		}
-		
+
 		public static interface Merger<T> {
 			public T merge(T a, T b);
 		}
-		
+
 		public static abstract class NullMerger<T> implements Merger<T> {
 			@Override
 			public T merge(T a, T b) {
@@ -481,12 +485,14 @@ public class RangeQueries {
 				}
 				return mergeNonNull(a, b);
 			}
-			
+
 			public abstract T mergeNonNull(T a, T b);
 		}
 	}
 
 	/**
+	 * TODO:  Needs to copy left-to-right merge logic from ArraySegmentTree.
+	 *
 	 * PrimitiveArraySegmentTree is the same as ArraySegmentTree, except that it uses a primitive type natively to avoid boxing/unboxing.
 	 * Use your editor's find-and-replace to rename the types into primitives, since Java doesn't support generics of primitives.
 	 */
