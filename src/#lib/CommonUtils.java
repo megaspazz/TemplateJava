@@ -116,7 +116,7 @@ public class CommonUtils {
 			}
 			count = Math.min(2, count + 1);
 		}
-		
+
 		@Override
 		public String toString() {
 			return "[" + first + ", " + second + "]";
@@ -181,7 +181,7 @@ public class CommonUtils {
 			this.first = Math.max(first, second);
 			this.second = Math.min(first, second);
 		}
-		
+
 		public BottomTwoLong(long[] arr) {
 			this();
 			for (long x : arr) {
@@ -203,52 +203,102 @@ public class CommonUtils {
 			count = Math.min(2, count + 1);
 		}
 	}
-	
+
 	public static class IntMultiSet {
 		public final int offset;
 		public final long[] count;
-		
+
 		private int uniq;
 		private long total;
-		
+
 		public IntMultiSet(int hiExclusive) {
 			this(0, hiExclusive);
 		}
-		
+
 		public IntMultiSet(int loInclusive, int hiExclusive) {
 			this.offset = loInclusive;
 			this.count = new long[hiExclusive - loInclusive];
 		}
-		
+
 		public int uniqueCount() {
 			return uniq;
 		}
-		
+
 		public long size() {
 			return total;
 		}
-		
+
 		public void increment(int k) {
 			increment(k, 1);
 		}
-		
+
 		public void decrement(int k) {
 			increment(k, -1);
 		}
-		
+
 		public void increment(int k, long v) {
 			final int key = k - offset;
-			
+
 			if (count[key] == 0) {
 				++uniq;
 			}
-			
+
 			count[key] += v;
 			total += v;
-			
+
 			if (count[key] == 0) {
 				--uniq;
 			}
+		}
+	}
+
+	/**
+	 * Flat int-to-int map designed to be re-used across multiple test cases.
+	 * For example, initialize it as a static variable, or pass it around everywhere it's needed.
+	 * Instead of instantiating a new one, to re-use an existing one, just call the `clear()` method.
+	 */
+	public static class ResuableFixedIntToIntMap {
+		private final int[] A;
+		private final boolean[] seen;
+		private final int[] insertions;
+		private int insertionsIdx = 0;
+
+		public ResuableFixedIntToIntMap(int N) {
+			this.A = new int[N];
+			this.seen = new boolean[N];
+			this.insertions = new int[N];
+		}
+
+		public void put(int k, int v) {
+			A[k] = v;
+			seen[k] = true;
+
+			if (insertionsIdx < A.length) {
+				insertions[insertionsIdx++] = k;
+			}
+		}
+
+		public boolean containsKey(int k) {
+			return seen[k];
+		}
+
+		public int get(int k) {
+			return A[k];
+		}
+
+		public int getOrDefault(int k, int defaultValue) {
+			return containsKey(k) ? get(k) : defaultValue;
+		}
+
+		public void clear() {
+			if (insertionsIdx >= A.length) {
+				Arrays.fill(seen, false);
+			} else {
+				for (int i = 0; i < insertionsIdx; ++i) {
+					seen[insertions[i]] = false;
+				}
+			}
+			insertionsIdx = 0;
 		}
 	}
 }
