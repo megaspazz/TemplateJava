@@ -16,19 +16,19 @@ public class CommonUtils {
 			return getOrDefault(k, 0);
 		}
 
-		public void decrement(T k) {
-			decrement(k, 1);
+		public int decrement(T k) {
+			return decrement(k, 1);
 		}
 
-		public void decrement(T k, int v) {
-			increment(k, -v);
+		public int decrement(T k, int v) {
+			return increment(k, -v);
 		}
 
-		public void increment(T k) {
-			increment(k, 1);
+		public int increment(T k) {
+			return increment(k, 1);
 		}
 
-		public void increment(T k, int v) {
+		public int increment(T k, int v) {
 			total += v;
 			int next = getCount(k) + v;
 			if (next == 0) {
@@ -36,6 +36,7 @@ public class CommonUtils {
 			} else {
 				put(k, next);
 			}
+			return next;
 		}
 
 		public static <T> CountMapInt<T> fromArray(T[] A) {
@@ -62,7 +63,19 @@ public class CommonUtils {
 			return getOrDefault(k, 0L);
 		}
 
-		public void increment(T k, long v) {
+		public long decrement(T k) {
+			return decrement(k, 1);
+		}
+
+		public long decrement(T k, long v) {
+			return increment(k, -v);
+		}
+
+		public long increment(T k) {
+			return increment(k, 1);
+		}
+
+		public long increment(T k, long v) {
 			total += v;
 			long next = getCount(k) + v;
 			if (next == 0) {
@@ -70,6 +83,7 @@ public class CommonUtils {
 			} else {
 				put(k, next);
 			}
+			return next;
 		}
 
 		public static <T> CountMapLong<T> fromArray(T[] A) {
