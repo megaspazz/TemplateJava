@@ -611,4 +611,141 @@ public class Lists {
 			}
 		}
 	}
+
+	/**
+	 * Generic double linked list.
+	 * The `head` and `tail` nodes do not contain data, and are not part of the list, so forward iteration would start at `head.next`.
+	 * Calling unsupported methods on `head` and `tail` will throw an exception.
+	 */
+	public static class DoublyLinkedList<T> {
+		public HeadNode<T> head = new HeadNode<>();
+		public TailNode<T> tail = new TailNode<>();
+
+		public DoublyLinkedList() {
+			head.next = tail;
+			tail.prev = head;
+		}
+
+		public void addFirst(Node<T> node) {
+			head.insertAfter(node);
+		}
+
+		public void addFirst(T data) {
+			addFirst(new ListNode<T>(data));
+		}
+
+		public void addLast(Node<T> node) {
+			tail.insertBefore(node);
+		}
+
+		public void addLast(T data) {
+			addLast(new ListNode<T>(data));
+		}
+
+		public static abstract class Node<T> {
+			public Node<T> prev, next;
+
+			public abstract void removeSelf();
+			public abstract void insertBefore(Node<T> node);
+			public abstract void insertAfter(Node<T> node);
+			public abstract T getData();
+
+			public void insertBefore(T data) {
+				insertBefore(new ListNode<>(data));
+			}
+
+			public void insertAfter(T data) {
+				insertAfter(new ListNode<>(data));
+			}
+
+			protected static final <T> void insertBefore(Node<T> curr, Node<T> node) {
+				node.prev = curr.prev;
+				node.next = curr;
+				curr.prev = node;
+				node.prev.next = node;
+			}
+
+			protected static final <T> void insertAfter(Node<T> curr, Node<T> node) {
+				node.next = curr.next;
+				node.prev = curr;
+				curr.next = node;
+				node.next.prev = node;
+			}
+		}
+
+		private static class ListNode<T> extends Node<T> {
+			public T data;
+
+			public ListNode(T data) {
+				this.data = data;
+			}
+
+			@Override
+			public void removeSelf() {
+				prev.next = next;
+				next.prev = prev;
+				next = null;
+				prev = null;
+			}
+
+			@Override
+			public void insertBefore(Node<T> node) {
+				insertBefore(this, node);
+			}
+
+			@Override
+			public void insertAfter(Node<T> node) {
+				insertAfter(this, node);
+			}
+
+			@Override
+			public T getData() {
+				return data;
+			}
+		}
+
+		private static class HeadNode<T> extends Node<T> {
+			@Override
+			public void removeSelf() {
+				throw new UnsupportedOperationException("cannot remove HEAD node");
+			}
+
+			@Override
+			public void insertBefore(Node<T> node) {
+				throw new UnsupportedOperationException("cannot insert before HEAD node");
+			}
+
+			@Override
+			public void insertAfter(Node<T> node) {
+				insertAfter(this, node);
+			}
+
+			@Override
+			public T getData() {
+				throw new UnsupportedOperationException("cannot get data for HEAD node");
+			}
+		}
+
+		private static class TailNode<T> extends Node<T> {
+			@Override
+			public void removeSelf() {
+				throw new UnsupportedOperationException("cannot remove TAIL node");
+			}
+
+			@Override
+			public void insertBefore(Node<T> node) {
+				insertBefore(this, node);
+			}
+
+			@Override
+			public void insertAfter(Node<T> node) {
+				throw new UnsupportedOperationException("cannot insert after TAIL node");
+			}
+
+			@Override
+			public T getData() {
+				throw new UnsupportedOperationException("cannot get data for TAIL node");
+			}
+		}
+	}
 }
