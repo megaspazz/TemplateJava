@@ -609,22 +609,40 @@ public class Methods {
 	}
 
 	/**
+	 * Converts an integer adjacency matrix of 1's and 0's to a boolean adjacency matrix.
+	 * Useful with bipartiteMatching, which takes adjancency matrix of boolean[][] as input (instead of int[][]).
+	 */
+	public static boolean[][] intToBooleanAdjMat(int[][] mat) {
+		int M = mat.length;
+		int N = mat[0].length;
+		boolean[][] bMat = new boolean[M][N];
+		for (int i = 0; i < M; i++) {
+			for (int j = 0; j < N; j++) {
+				bMat[i][j] = (mat[i][j] != 0);
+			}
+		}
+		return bMat;
+	}
+
+	/**
 	 * Implementation of Hopcroft-Karp algorithm for finding maximum bipartite matching in O(sqrt(V) * E) time.
 	 * See this page for implementation details:  http://www.sanfoundry.com/java-program-hopcroft-karp-algorithm/
+	 * 
+	 * IMPORTANT:  The vertices must be numbered starting from one, not zero!
 	 */
 	public static class HopcroftKarp {
 		private static final int NIL = 0;
 		private static final int INF = Integer.MAX_VALUE;
 
-		private IntList[] adj;
+		private IntDeque[] adj;
 		private int cx, cy;
 
 		public HopcroftKarp(int xCnt, int yCnt) {
 			this.cx = xCnt;
 			this.cy = yCnt;
-			this.adj = new IntList[cx + cy + 1];
+			this.adj = new IntDeque[cx + cy + 1];
 			for (int i = 0; i < adj.length; ++i) {
-				this.adj[i] = new IntList();
+				this.adj[i] = new IntDeque();
 			}
 		}
 
@@ -650,7 +668,7 @@ public class Methods {
 		}
 
 		private boolean BFS(int[] pair, int[] dist) {
-			LinkedList<Integer> queue = new LinkedList<Integer>();
+			IntDeque queue = new IntDeque();
 			for (int v = 1; v <= cx; ++v) {
 				if (pair[v] == NIL) {
 					dist[v] = 0;
@@ -663,10 +681,10 @@ public class Methods {
 			while (!queue.isEmpty()) {
 				int v = queue.poll();
 				if (dist[v] < dist[NIL]) {
-					for (int u : adj[v]) {
+					for (int u : adj[v].toArray()) {
 						if (dist[pair[u]] == INF) {
 							dist[pair[u]] = dist[v] + 1;
-							queue.add(pair[u]);
+							queue.offer(pair[u]);
 						}
 					}
 				}
@@ -676,7 +694,7 @@ public class Methods {
 
 		private boolean DFS(int v, int[] pair, int[] dist) {
 			if (v != NIL) {
-				for (int u : adj[v]) {
+				for (int u : adj[v].toArray()) {
 					if (dist[pair[u]] == dist[v] + 1) {
 						if (DFS(pair[u], pair, dist)) {
 							pair[u] = v;
@@ -691,25 +709,93 @@ public class Methods {
 			return true;
 		}
 
-		public static class IntList extends ArrayList<Integer> {
-			private static final long serialVersionUID = 1542278293693820951L;
-		}
-	}
+		private static class IntDeque {
+			private int[] arr;
+			private int off;
+			private int len;
 
-	/**
-	 * Converts an integer adjacency matrix of 1's and 0's to a boolean adjacency matrix.
-	 * Useful with bipartiteMatching, which takes adjancency matrix of boolean[][] as input (instead of int[][]).
-	 */
-	public static boolean[][] intToBooleanAdjMat(int[][] mat) {
-		int M = mat.length;
-		int N = mat[0].length;
-		boolean[][] bMat = new boolean[M][N];
-		for (int i = 0; i < M; i++) {
-			for (int j = 0; j < N; j++) {
-				bMat[i][j] = (mat[i][j] != 0);
+			public IntDeque() {
+				this(2);
+			}
+
+			public IntDeque(int capacity) {
+				this.arr = new int[capacity];
+			}
+
+			public void addLast(int x) {
+				if (len == arr.length) {
+					increaseCapacity();
+				}
+				int idx = index(off + len);
+				arr[idx] = x;
+				++len;
+			}
+
+			public int peekFirst() {
+				return arr[off];
+			}
+
+			public int removeFirst() {
+				int ans = peekFirst();
+				off = index(off + 1);
+				--len;
+				return ans;
+			}
+
+			public void add(int x) {
+				addLast(x);
+			}
+
+			public void offer(int x) {
+				addLast(x);
+			}
+
+			public int poll() {
+				return removeFirst();
+			}
+
+			public int size() {
+				return len;
+			}
+
+			public boolean isEmpty() {
+				return size() == 0;
+			}
+
+			public int[] toArray() {
+				if (len == 0) {
+					return new int[0];
+				}
+				int idx = index(off + len);
+				if (idx > off) {
+					return Arrays.copyOfRange(arr, off, idx);
+				}
+				int[] A = new int[len];
+				int endLen = arr.length - off;
+				int startLen = len - endLen;
+				System.arraycopy(arr, off, A, 0, endLen);
+				System.arraycopy(arr, 0, A, endLen, startLen);
+				return A;
+			}
+
+			private void increaseCapacity() {
+				int[] next = new int[arr.length << 1];
+				int endLen = arr.length - off;
+				System.arraycopy(arr, off, next, 0, endLen);
+				System.arraycopy(arr, 0, next, endLen, off);
+				arr = next;
+				off = 0;
+			}
+
+			private int index(int i) {
+				if (i >= arr.length) {
+					i -= arr.length;
+				} else if (i < 0) {
+					i += arr.length;
+				}
+				return i;
 			}
 		}
-		return bMat;
 	}
 
 	/**
