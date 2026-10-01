@@ -634,31 +634,25 @@ public class Methods {
 		private static final int NIL = 0;
 		private static final int INF = Integer.MAX_VALUE;
 
-		private IntDeque[] adj;
-		private int cx, cy;
+		public int cx, cy;
+		public int[][] adj;
 
-		public HopcroftKarp(int xCnt, int yCnt) {
+		private IntDeque reusableQueue = new IntDeque();
+
+		public HopcroftKarp(int xCnt, int yCnt, int[][] adj) {
 			this.cx = xCnt;
 			this.cy = yCnt;
-			this.adj = new IntDeque[cx + cy + 1];
-			for (int i = 0; i < adj.length; ++i) {
-				this.adj[i] = new IntDeque();
-			}
-		}
-
-		public void addEdge(int u, int v) {
-			this.adj[u].add(cx + v);
-			this.adj[cx + v].add(u);
+			this.adj = adj;
 		}
 
 		public int maxBipartiteMatching() {
 			int[] pair = new int[cx + cy + 1];
 			int[] dist = new int[cx + cy + 1];
 			int matching = 0;
-			while (BFS(pair, dist)) {
+			while (bfs(pair, dist)) {
 				for (int v = 1; v <= cx; ++v) {
 					if (pair[v] == NIL) {
-						if (DFS(v, pair, dist)) {
+						if (dfs(v, pair, dist)) {
 							matching = matching + 1;
 						}
 					}
@@ -667,24 +661,23 @@ public class Methods {
 			return matching;
 		}
 
-		private boolean BFS(int[] pair, int[] dist) {
-			IntDeque queue = new IntDeque();
+		private boolean bfs(int[] pair, int[] dist) {
 			for (int v = 1; v <= cx; ++v) {
 				if (pair[v] == NIL) {
 					dist[v] = 0;
-					queue.add(v);
+					reusableQueue.add(v);
 				} else {
 					dist[v] = INF;
 				}
 			}
 			dist[NIL] = INF;
-			while (!queue.isEmpty()) {
-				int v = queue.poll();
+			while (!reusableQueue.isEmpty()) {
+				int v = reusableQueue.poll();
 				if (dist[v] < dist[NIL]) {
-					for (int u : adj[v].toArray()) {
+					for (int u : adj[v]) {
 						if (dist[pair[u]] == INF) {
 							dist[pair[u]] = dist[v] + 1;
-							queue.offer(pair[u]);
+							reusableQueue.offer(pair[u]);
 						}
 					}
 				}
@@ -692,11 +685,11 @@ public class Methods {
 			return dist[NIL] != INF;
 		}
 
-		private boolean DFS(int v, int[] pair, int[] dist) {
+		private boolean dfs(int v, int[] pair, int[] dist) {
 			if (v != NIL) {
-				for (int u : adj[v].toArray()) {
+				for (int u : adj[v]) {
 					if (dist[pair[u]] == dist[v] + 1) {
-						if (DFS(pair[u], pair, dist)) {
+						if (dfs(pair[u], pair, dist)) {
 							pair[u] = v;
 							pair[v] = u;
 							return true;
@@ -707,6 +700,33 @@ public class Methods {
 				return false;
 			}
 			return true;
+		}
+
+		public static class Builder {
+			private IntDeque[] adjLists;
+			private int cx, cy;
+
+			public Builder(int xCnt, int yCnt) {
+				this.cx = xCnt;
+				this.cy = yCnt;
+				this.adjLists = new IntDeque[cx + cy + 1];
+				for (int i = 1; i < adjLists.length; ++i) {
+					this.adjLists[i] = new IntDeque();
+				}
+			}
+
+			public void addEdge(int u, int v) {
+				this.adjLists[u].add(cx + v);
+				this.adjLists[cx + v].add(u);
+			}
+
+			public HopcroftKarp build() {
+				int[][] adjArrays = new int[adjLists.length][];
+				for (int i = 1; i < adjLists.length; ++i) {
+					adjArrays[i] = adjLists[i].toArray();
+				}
+				return new HopcroftKarp(cx, cy, adjArrays);
+			}
 		}
 
 		private static class IntDeque {
