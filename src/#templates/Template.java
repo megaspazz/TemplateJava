@@ -188,6 +188,20 @@ public class Template {
 			return arr;
 		}
 
+		public int[][] nextIntMatrix(int n, int m) {
+			return nextIntMatrix(n, m, 0, 0);
+		}
+
+		public int[][] nextIntMatrix(int n, int m, int offRow, int offCol) {
+			int[][] mat = new int[n + offRow][m + offCol];
+			for (int i = 0; i < n; ++i) {
+				for (int j = 0; j < m; ++j) {
+					mat[i + offRow][j + offCol] = nextInt();
+				}
+			}
+			return mat;
+		}
+
 		private boolean isSpaceChar(int c) {
 			return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == -1;
 		}
