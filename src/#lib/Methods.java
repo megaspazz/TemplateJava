@@ -2103,11 +2103,13 @@ public class Methods {
 	}
 
 	/**
+	 * NOTE:  Prefer using the TopologicalSort class below.
+	 * 
 	 * This method returns a list of the nodes after they have been topologically sorted.
 	 * It will return null if it was impossible to do so.
-	 * NOTE: This will destructively modify the list!
+	 * WARNING:  This will destructively modify the list!
 	 */
-	public static ArrayList<InOutNode> toplogicalSort(HashSet<InOutNode> nodes) {
+	public static ArrayList<InOutNode> topologicalSort(HashSet<InOutNode> nodes) {
 		ArrayList<InOutNode> lst = new ArrayList<InOutNode>();
 		HashSet<InOutNode> starts = new HashSet<InOutNode>();
 		LinkedList<InOutNode> q = new LinkedList<InOutNode>();
@@ -2138,6 +2140,105 @@ public class Methods {
 			}
 		}
 		return lst;
+	}
+
+	/**
+	 * Use the builder to add directed edges, build the TopologicalSort object, and then call topologicalSort().
+	 * It will return null if it was impossible.
+	 */
+	public static class TopologicalSort {
+		private final int[][] adj;
+
+		private TopologicalSort(int[][] adj) {
+			this.adj = adj;
+		}
+
+		public int[] topologicalSort() {
+			final int N = adj.length;
+
+			int[] indegRem = new int[N];
+			for (int[] toArr : adj) {
+				for (int to : toArr) {
+					++indegRem[to];
+				}
+			}
+
+			int[] order = new int[N];
+			int writeIdx = 0;
+			for (int i = 0; i < N; ++i) {
+				if (indegRem[i] == 0) {
+					order[writeIdx++] = i;
+				}
+			}
+
+			int readIdx = 0;
+			while (readIdx < writeIdx) {
+				int u = order[readIdx++];
+				for (int v : adj[u]) {
+					if (--indegRem[v] <= 0) {
+						order[writeIdx++] = v;
+					}
+				}
+			}
+			if (writeIdx < N) {
+				return null;
+			}
+			return order;
+		}
+
+		public static class Builder {
+			private final IntList[] adjLists;
+
+			public Builder(int numNodes) {
+				this.adjLists = new IntList[numNodes];
+
+				for (int i = 0; i < adjLists.length; ++i) {
+					adjLists[i] = new IntList();
+				}
+			}
+
+			public void addEdge(int from, int to) {
+				adjLists[from].add(to);
+			}
+
+			public TopologicalSort build() {
+				final int N = adjLists.length;
+
+				int[][] adjArr = new int[N][];
+				for (int i = 0; i < N; ++i) {
+					adjArr[i] = adjLists[i].toArray();
+				}
+				return new TopologicalSort(adjArr);
+			}
+		}
+
+		private static class IntList {
+			public int[] arr;
+			public int pos;
+
+			public IntList(int capacity) {
+				this.arr = new int[capacity];
+			}
+
+			public IntList() {
+				this(2);
+			}
+
+			public void add(int x) {
+				if (pos >= arr.length) {
+					resize(arr.length << 1);
+				}
+				arr[pos++] = x;
+			}
+
+			public int[] toArray() {
+				return Arrays.copyOf(arr, pos);
+			}
+
+			private void resize(int newCapacity) {
+				arr = Arrays.copyOf(arr, newCapacity);
+			}
+		}
 	}
 
 	/**
@@ -2384,6 +2485,8 @@ public class Methods {
 	}
 
 	/**
+	 * NOTE:  Prefer using the TarjanScc class below for performance and ease-of-use.
+	 * 
 	 * Implementation of Tarjan's algorithm for finding strongly connected components.
 	 * The parameter for the constructor is an array of nodes representing the graph.  These nodes will be modified!
 	 * After construction, the strongly connected components will be in the public field called "scc" where it can be accessed.
@@ -2429,6 +2532,135 @@ public class Methods {
 					set.add(n);
 				} while (curr != n);
 				scc.add(set);
+			}
+		}
+	}
+
+	/**
+	 * Implementation of Tarjan's algorithm for finding strongly connected components.
+	 * Use the builder to add directed edges, build the TarjanScc object, and then call stronglyConnectedComponents().
+	 * Each row of the output matrix contains all vertex IDs in a strongly connected component.
+	 * Run-time: O(|V| + |E|)
+	 */
+	public static class TarjanScc {
+		private static final int INVALID_LOW = -1;
+
+		private int index;
+		private IntList stack = new IntList();
+		private ArrayList<int[]> scc = new ArrayList<int[]>();
+
+		private int[][] adj;
+		private int[] low;
+
+		private IntList outList = new IntList();
+
+		public TarjanScc(int[][] adj) {
+			this.adj = adj;
+			this.low = new int[adj.length];
+		}
+
+		public int[][] stronglyConnectedComponents() {
+			Arrays.fill(low, INVALID_LOW);
+			for (int i = 0; i < adj.length; i++) {
+				if (low[i] == INVALID_LOW) {
+					process(i);
+				}
+			}
+			return scc.toArray(new int[0][]);
+		}
+
+		private void process(int curr) {
+			low[curr] = index++;
+			stack.push(curr);
+			boolean root = true;
+			for (int next : adj[curr]) {
+				if (low[next] == INVALID_LOW) {
+					process(next);
+				}
+				if (low[curr] > low[next]) {
+					low[curr] = low[next];
+					root = false;
+				}
+			}
+			if (root) {
+				outList.clear();
+				int n;
+				do {
+					n = stack.pop();
+					low[n] = Integer.MAX_VALUE;
+					outList.add(n);
+				} while (curr != n);
+				scc.add(outList.toArray());
+			}
+		}
+
+		public static class Builder {
+			private final IntList[] adjLists;
+
+			public Builder(int numNodes) {
+				this.adjLists = new IntList[numNodes];
+
+				for (int i = 0; i < adjLists.length; ++i) {
+					adjLists[i] = new IntList();
+				}
+			}
+
+			public void addEdge(int from, int to) {
+				adjLists[from].add(to);
+			}
+
+			public TarjanScc build() {
+				final int N = adjLists.length;
+
+				int[][] adjArr = new int[N][];
+				for (int i = 0; i < N; ++i) {
+					adjArr[i] = adjLists[i].toArray();
+				}
+				return new TarjanScc(adjArr);
+			}
+		}
+
+		private static class IntList {
+			public int[] arr;
+			public int pos;
+
+			public IntList(int capacity) {
+				this.arr = new int[capacity];
+			}
+
+			public IntList() {
+				this(2);
+			}
+
+			public void add(int x) {
+				if (pos >= arr.length) {
+					resize(arr.length << 1);
+				}
+				arr[pos++] = x;
+			}
+
+			public void clear() {
+				pos = 0;
+			}
+
+			public void push(int x) {
+				add(x);
+			}
+
+			public int removeLast() {
+				return arr[--pos];
+			}
+
+			public int pop() {
+				return removeLast();
+			}
+
+			public int[] toArray() {
+				return Arrays.copyOf(arr, pos);
+			}
+
+			private void resize(int newCapacity) {
+				arr = Arrays.copyOf(arr, newCapacity);
 			}
 		}
 	}
