@@ -267,6 +267,87 @@ public class CommonUtils {
 	}
 
 	/**
+	 * Flat int-to-long multi-set designed to be re-used across multiple test cases.
+	 * For example, initialize it as a static variable, or pass it around everywhere it's needed.
+	 * Instead of instantiating a new one, to re-use an existing one, just call the `clear()` method.
+	 */
+	public static class ReusableIntMultiSet {
+		private final int N;
+
+		public final int offset;
+		public final long[] count;
+
+		private int uniq;
+		private long total;
+
+		private final int[] updates;
+		private int updatesIdx;
+
+		public ReusableIntMultiSet(int hiExclusive) {
+			this(0, hiExclusive);
+		}
+
+		public ReusableIntMultiSet(int loInclusive, int hiExclusive) {
+			this.N = hiExclusive - loInclusive;
+			this.offset = loInclusive;
+			this.count = new long[N];
+			this.updates = new int[N];
+		}
+
+		public int uniqueCount() {
+			return uniq;
+		}
+
+		public long size() {
+			return total;
+		}
+
+		public void increment(int k) {
+			increment(k, 1);
+		}
+
+		public void decrement(int k) {
+			increment(k, -1);
+		}
+
+		public long getCount(int k) {
+			return count[getIndex(k)];
+		}
+
+		public void increment(int k, long v) {
+			final int key = getIndex(k);
+
+			if (count[key] == 0) {
+				++uniq;
+			}
+
+			count[key] += v;
+			total += v;
+
+			if (count[key] == 0) {
+				--uniq;
+			} else if (updatesIdx < N) {
+				updates[updatesIdx++] = key;
+			}
+		}
+
+		public void clear() {
+			if (updatesIdx >= N) {
+				Arrays.fill(count, 0);
+			} else {
+				for (int i = 0; i < updatesIdx; ++i) {
+					count[updates[i]] = 0;
+				}
+			}
+			updatesIdx = 0;
+		}
+
+		private int getIndex(int k) {
+			return k - offset;
+		}
+	}
+
+	/**
 	 * Flat int-to-int map designed to be re-used across multiple test cases.
 	 * For example, initialize it as a static variable, or pass it around everywhere it's needed.
 	 * Instead of instantiating a new one, to re-use an existing one, just call the `clear()` method.
