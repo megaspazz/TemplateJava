@@ -164,6 +164,18 @@ public class Template {
 			return arr;
 		}
 
+		public void nextIntArrays(int n, int[]... arrs) {
+			nextIntArrays(n, 0, arrs);
+		}
+
+		public void nextIntArrays(int n, int off, int[]... arrs) {
+			for (int i = 0; i < n; ++i) {
+				for (int j = 0; j < arrs.length; ++j) {
+					arrs[j][i + off] = nextInt();
+				}
+			}
+		}
+
 		public long[] nextLongArray(int n) {
 			return nextLongArray(n, 0);
 		}
@@ -174,6 +186,18 @@ public class Template {
 				arr[i + off] = nextLong();
 			}
 			return arr;
+		}
+
+		public void nextLongArrays(int n, long[]... arrs) {
+			nextLongArrays(n, 0, arrs);
+		}
+
+		public void nextLongArrays(int n, int off, long[]... arrs) {
+			for (int i = 0; i < n; ++i) {
+				for (int j = 0; j < arrs.length; ++j) {
+					arrs[j][i + off] = nextLong();
+				}
+			}
 		}
 
 		public String[] nextStringArray(int n) {
