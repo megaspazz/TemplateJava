@@ -396,4 +396,56 @@ public class CommonUtils {
 			insertionsIdx = 0;
 		}
 	}
+
+	/**
+	 * Flat generic int-to-any map designed to be re-used across multiple test cases.
+	 * For example, initialize it as a static variable, or pass it around everywhere it's needed.
+	 * Instead of instantiating a new one, to re-use an existing one, just call the `clear()` method.
+	 */
+	public static class ResuableFixedIntMap<T> {
+		private final T[] A;
+		private final boolean[] seen;
+		private final int[] insertions;
+		private int insertionsIdx = 0;
+
+		public ResuableFixedIntMap(int N, T[] template) {
+			this.A = Arrays.copyOf(template, N);
+			Arrays.fill(A, null);
+
+			this.seen = new boolean[N];
+			this.insertions = new int[N];
+		}
+
+		public void put(int k, T v) {
+			A[k] = v;
+			seen[k] = true;
+
+			if (insertionsIdx < A.length) {
+				insertions[insertionsIdx++] = k;
+			}
+		}
+
+		public boolean containsKey(int k) {
+			return seen[k];
+		}
+
+		public T get(int k) {
+			return getOrDefault(k, null);
+		}
+
+		public T getOrDefault(int k, T defaultValue) {
+			return containsKey(k) ? A[k] : defaultValue;
+		}
+
+		public void clear() {
+			if (insertionsIdx >= A.length) {
+				Arrays.fill(seen, false);
+			} else {
+				for (int i = 0; i < insertionsIdx; ++i) {
+					seen[insertions[i]] = false;
+				}
+			}
+			insertionsIdx = 0;
+		}
+	}
 }
