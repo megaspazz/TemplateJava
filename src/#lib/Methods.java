@@ -4068,4 +4068,432 @@ public class Methods {
 			public boolean isConvex(Point a, Point b, Point c);
 		}
 	}
+
+	/**
+	 * NOTE:  Prefer using the LowestCommonAncestor class instead for performance and ease-of-use.
+	 * 
+	 * Computes least common ancestor of nodes in a graph.
+	 * Usage:
+	 *   1)  Build bidirectional graph on LCA.Node, populating only "index" and "neighbors" fields.
+	 *   2)  With root node, initialize LCA in O(log N) time:
+	 *           LCA lca = new LCA(root);
+	 *   3)  To find least common ancestor of two nodes in O(1) time:
+	 *           LCA.Node ancestor = lca.leastCommonAncestor(u, v);
+	 */
+	public static class LCA {
+		private ArrayList<Integer> idx = new ArrayList<>();
+		private SparseTable tbl;
+
+		public LCA(Node root) {
+			root.initRootTree();
+			ArrayList<Node> lst = traverse(root);
+			tbl = new SparseTable(lst.toArray(new Node[0]));
+		}
+
+		public Node leastCommonAncestor(Node u, Node v) {
+			int left = Math.min(idx.get(u.index), idx.get(v.index));
+			int rite = Math.max(idx.get(u.index), idx.get(v.index));
+			return tbl.getMin(left, rite);
+		}
+
+		private ArrayList<Node> traverse(Node start) {
+			ArrayList<Node> lst = new ArrayList<>();
+			Stack<Node> nodes = new Stack<>();
+			Stack<Integer> indices = new Stack<>();
+			nodes.push(start);
+			indices.push(0);
+			while (!nodes.isEmpty()) {
+				Node u = nodes.pop();
+				int i = indices.pop();
+				while (u.index >= idx.size()) {
+					idx.add(null);
+				}
+				if (idx.get(u.index) == null) {
+					idx.set(u.index, lst.size());
+				}
+				lst.add(u);
+				if (i < u.neighbors.size()) {
+					nodes.push(u);
+					indices.push(i + 1);
+					nodes.push(u.neighbors.get(i));
+					indices.push(0);
+					++i;
+				}
+			}
+			return lst;
+		}
+
+		public static class Node {
+			public ArrayList<Node> neighbors = new ArrayList<>();
+			public int index;
+			public int level;
+
+			public Node(int idx) {
+				this.index = idx;
+			}
+
+			public void initRootTree() {
+				Stack<Node> nodes = new Stack<>();
+				Stack<Node> parents = new Stack<>();
+				Stack<Integer> levels = new Stack<>();
+				nodes.push(this);
+				parents.push(null);
+				levels.push(0);
+				while (!nodes.isEmpty()) {
+					Node u = nodes.pop();
+					Node p = parents.pop();
+					int lvl = levels.pop();
+					u.neighbors.remove(p);
+					u.level = lvl;
+					for (Node v : u.neighbors) {
+						nodes.push(v);
+						parents.push(u);
+						levels.push(lvl + 1);
+					}
+				}
+			}
+		}
+
+		public static Node nodeMin(Node a, Node b) {
+			if (a == null && b == null) {
+				return null;
+			} else if (a == null) {
+				return b;
+			} else if (b == null) {
+				return a;
+			} else {
+				return (a.level < b.level) ? a : b;
+			}
+		}
+
+		public static class SparseTable {
+			public Node[] arr;
+			public Node[][] table;
+			public int num;
+			public int pow;
+
+			public SparseTable(Node[] a) {
+				int n = a.length;
+				int p = Integer.SIZE - Integer.numberOfLeadingZeros(n - 1);
+
+				this.arr = a;
+				this.num = n;
+				this.pow = p;
+				this.table = new Node[n][p];
+
+				for (int i = 0; i < n; i++) {
+					this.table[i][0] = a[i];
+				}
+				for (int j = 1; j < p; j++) {
+					for (int i = 0; i < n; i++) {
+						int off = (1 << (j - 1));
+						Node next = (i + off >= n) ? null : this.table[i + off][j - 1];
+						this.table[i][j] = nodeMin(this.table[i][j - 1], next);
+					}
+				}
+			}
+
+			public Node getMin(int lower, int upper) {
+				int k = 31 - Integer.numberOfLeadingZeros(upper - lower + 1);
+				int off = (1 << k);
+				return nodeMin(this.table[lower][k], this.table[upper - off + 1][k]);
+			}
+		}
+	}
+
+	/**
+	 * Computes lowest common ancestor of nodes in a tree.
+	 * Use the builder to add undirected edges, build the LowestCommonAncestor object, and then call lowestCommonAncestor(...) for queries.
+	 */
+	public static class LowestCommonAncestor {
+		private static final int INVALID_INDEX = -1;
+
+		private final IntDeque idx = new IntDeque();
+		private final SparseTable tbl;
+
+		private final int N;
+		private final int[][] adj;
+		private final int root;
+
+		public final int[] level;
+
+		private LowestCommonAncestor(int[][] adj, int root) {
+			this.N = adj.length;
+			this.adj = adj;
+			this.level = new int[N];
+			this.root = root;
+
+			setLevels();
+
+			int[] order = traverse().toArray();
+
+			long[] levelIndex = new long[order.length];
+			for (int i = 0; i < order.length; ++i) {
+				levelIndex[i] = makeLevelIndex(level[order[i]], order[i]);
+			}
+			this.tbl = new SparseTable(levelIndex);
+		}
+
+		public int lowestCommonAncestor(int u, int v) {
+			int left = Math.min(idx.get(u), idx.get(v));
+			int rite = Math.max(idx.get(u), idx.get(v));
+			return getIndex(tbl.getMin(left, rite));
+		}
+
+		public int getLevel(int u) {
+			return level[u];
+		}
+
+		private void setLevels() {
+			IntDeque q = new IntDeque();
+			q.offer(root);
+			q.offer(0);
+			while (!q.isEmpty()) {
+				int u = q.poll();
+				int d = q.poll();
+				level[u] = d;
+				for (int v : adj[u]) {
+					q.offer(v);
+					q.offer(d + 1);
+				}
+			}
+		}
+
+		private IntDeque traverse() {
+			IntDeque lst = new IntDeque();
+			IntDeque nodes = new IntDeque();
+			IntDeque indices = new IntDeque();
+			nodes.push(root);
+			indices.push(0);
+			while (!nodes.isEmpty()) {
+				int u = nodes.pop();
+				int i = indices.pop();
+				while (u >= idx.size()) {
+					idx.add(INVALID_INDEX);
+				}
+				if (idx.get(u) == INVALID_INDEX) {
+					idx.set(u, lst.size());
+				}
+				lst.add(u);
+				if (i < adj[u].length) {
+					nodes.push(u);
+					indices.push(i + 1);
+					nodes.push(adj[u][i]);
+					indices.push(0);
+					++i;
+				}
+			}
+			return lst;
+		}
+
+		private static long makeLevelIndex(int level, int index) {
+			return (((long) level) << 32) | index;
+		}
+
+		private static int getIndex(long levelIndex) {
+			return (int) (levelIndex & ~0);
+		}
+
+		public static class Builder {
+			public IntDeque[] adjLists;
+
+			public Builder(int N) {
+				this.adjLists = new IntDeque[N];
+				for (int i = 0; i < N; ++i) {
+					adjLists[i] = new IntDeque();
+				}
+			}
+
+			public void addEdge(int from, int to) {
+				adjLists[from].add(to);
+				adjLists[to].add(from);
+			}
+
+			public LowestCommonAncestor build(int root) {
+				int[][] adj = new int[adjLists.length][];
+				IntDeque q = new IntDeque();
+				q.offer(root);
+				q.offer(-1);
+				while (!q.isEmpty()) {
+					int u = q.poll();
+					int p = q.poll();
+					adjLists[u].remove(p);
+					adj[u] = adjLists[u].toArray();
+					for (int v : adj[u]) {
+						q.offer(v);
+						q.offer(u);
+					}
+				}
+				return new LowestCommonAncestor(adj, root);
+			}
+		}
+
+		private static class SparseTable {
+			public long[][] table;
+
+			public SparseTable(long[] a) {
+				int n = a.length;
+				int p = Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(n - 1));
+
+				this.table = new long[n][p];
+
+				for (int i = 0; i < n; i++) {
+					this.table[i][0] = a[i];
+				}
+				for (int j = 1; j < p; j++) {
+					for (int i = 0; i < n; i++) {
+						int off = (1 << (j - 1));
+						long next = (i + off >= n) ? Long.MAX_VALUE : this.table[i + off][j - 1];
+						this.table[i][j] = Math.min(this.table[i][j - 1], next);
+					}
+				}
+			}
+
+			public long getMin(int lower, int upper) {
+				int k = 31 - Integer.numberOfLeadingZeros(upper - lower + 1);
+				int off = (1 << k);
+				return Math.min(this.table[lower][k], this.table[upper - off + 1][k]);
+			}
+		}
+
+		private static class IntDeque {
+			private int[] arr;
+			private int off;
+			private int len;
+
+			public IntDeque() {
+				this(2);
+			}
+
+			public IntDeque(int capacity) {
+				this.arr = new int[capacity];
+			}
+
+			public void addFirst(int x) {
+				if (len == arr.length) {
+					increaseCapacity();
+				}
+				if (off == 0) {
+					off = arr.length;
+				}
+				arr[--off] = x;
+				++len;
+			}
+
+			public void addLast(int x) {
+				if (len == arr.length) {
+					increaseCapacity();
+				}
+				int idx = index(off + len);
+				arr[idx] = x;
+				++len;
+			}
+
+			public int peekFirst() {
+				return arr[off];
+			}
+
+			public int removeFirst() {
+				int ans = peekFirst();
+				off = index(off + 1);
+				--len;
+				return ans;
+			}
+
+			public void add(int x) {
+				addLast(x);
+			}
+
+			public void offer(int x) {
+				addLast(x);
+			}
+
+			public int poll() {
+				return removeFirst();
+			}
+
+			public void push(int x) {
+				addFirst(x);
+			}
+
+			public int pop() {
+				return removeFirst();
+			}
+
+			public int get(int i) {
+				if (i >= len) {
+					throw new ArrayIndexOutOfBoundsException(String.format("index %d out of range [0, %d)", i, len));
+				}
+				int idx = index(i + off);
+				return arr[idx];
+			}
+
+			public void set(int i, int x) {
+				if (i >= len) {
+					throw new ArrayIndexOutOfBoundsException(String.format("index %d out of range [0, %d)", i, len));
+				}
+				int idx = index(i + off);
+				arr[idx] = x;
+			}
+
+			public int size() {
+				return len;
+			}
+
+			public boolean isEmpty() {
+				return size() == 0;
+			}
+
+			public boolean remove(int x) {
+				for (int i = 0; i < len; ++i) {
+					if (get(i) == x) {
+						removeAt(i);
+						return true;
+					}
+				}
+				return false;
+			}
+
+			public void removeAt(int index) {
+				for (int i = index; i + 1 < len; ++i) {
+					set(i, get(i + 1));
+				}
+				--len;
+			}
+
+			public int[] toArray() {
+				if (len == 0) {
+					return new int[0];
+				}
+				int idx = index(off + len);
+				if (idx > off) {
+					return Arrays.copyOfRange(arr, off, idx);
+				}
+				int[] A = new int[len];
+				int endLen = arr.length - off;
+				int startLen = len - endLen;
+				System.arraycopy(arr, off, A, 0, endLen);
+				System.arraycopy(arr, 0, A, endLen, startLen);
+				return A;
+			}
+
+			private void increaseCapacity() {
+				int[] next = new int[arr.length << 1];
+				int endLen = arr.length - off;
+				System.arraycopy(arr, off, next, 0, endLen);
+				System.arraycopy(arr, 0, next, endLen, off);
+				arr = next;
+				off = 0;
+			}
+
+			private int index(int i) {
+				if (i >= arr.length) {
+					i -= arr.length;
+				} else if (i < 0) {
+					i += arr.length;
+				}
+				return i;
+			}
+		}
+	}
 }
