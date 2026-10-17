@@ -103,6 +103,10 @@ public class Lists {
 			arr[idx] = x;
 		}
 
+		public void clear() {
+			len = 0;
+		}
+
 		public int size() {
 			return len;
 		}
@@ -271,6 +275,10 @@ public class Lists {
 			}
 			int idx = index(i + off);
 			arr[idx] = x;
+		}
+
+		public void clear() {
+			len = 0;
 		}
 
 		public int size() {
