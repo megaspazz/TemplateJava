@@ -1,7 +1,51 @@
 import java.util.*;
 
 public class RangeQueries {
-	/*
+	/**
+	  * Fenwick tree that supports both range updates and queries for sums.
+	  * It uses one-based indexing internally, but exposes zero-based indexing externally on range [lo, hi].
+	  * 
+	  * NOTE:  Be careful of overflow!
+	 */
+	public static class FenwickTreeRangeSum {
+		private final long[] A1, A2;
+
+		public FenwickTreeRangeSum(int N) {
+			this.A1 = new long[N + 1];
+			this.A2 = new long[N + 1];
+		}
+
+		public void addRange(int lo, int hi, long x) {
+			add(A1, lo, x);
+			add(A1, hi + 1, -x);
+			add(A2, lo, x * (lo - 1));
+			add(A2, hi + 1, -x * hi);
+		}
+
+		public long getRange(int lo, int hi) {
+			return prefixSum(hi) - prefixSum(lo - 1);
+		}
+
+		private long prefixSum(int i) {
+			return (sum(A1, i) * i) - sum(A2, i);
+		}
+
+		private static void add(long[] A, int index, long x) {
+			for (int i = index + 1; i < A.length; i += i & -i) {
+				A[i] += x;
+			}
+		}
+
+		private static long sum(long[] A, int index) {
+			long total = 0;
+			for (int i = index + 1; i > 0; i -= i & -i) {
+				total += A[i];
+			}
+			return total;
+		}
+	}
+
+	/**
 	 * Zero-indexed Fenwick Tree to compute range sums.
 	 * You need ceil(log2(N)) bits to store values N values from the range [0, N).
 	 * Commonly used bits values:
@@ -10,10 +54,10 @@ public class RangeQueries {
 	 *   - For N = 10^5, need bits = 17.
 	 *   - For N = 10^6, need bits = 20.
 	 */
-	public static class LongFenwickTreeRangeSum {
+	public static class LongFenwickTreeSum {
 		private long[] partial;
 
-		public LongFenwickTreeRangeSum(int bits) {
+		public LongFenwickTreeSum(int bits) {
 			partial = new long[1 << bits];
 		}
 
@@ -52,12 +96,12 @@ public class RangeQueries {
 			return sum;
 		}
 
-		public static LongFenwickTreeRangeSum newWithSize(int size) {
-			return new LongFenwickTreeRangeSum(Integer.SIZE - Integer.numberOfLeadingZeros(size));
+		public static LongFenwickTreeSum newWithSize(int size) {
+			return new LongFenwickTreeSum(Integer.SIZE - Integer.numberOfLeadingZeros(size));
 		}
 	}
 
-	/*
+	/**
 	 * Zero-indexed Fenwick Tree to compute range sums.
 	 * You need ceil(log2(N)) bits to store values N values from the range [0, N).
 	 * Commonly used bits values:
@@ -66,10 +110,10 @@ public class RangeQueries {
 	 *   - For N = 10^5, need bits = 17.
 	 *   - For N = 10^6, need bits = 20.
 	 */
-	public static class IntFenwickTreeRangeSum {
+	public static class IntFenwickTreeSum {
 		private int[] partial;
 
-		public IntFenwickTreeRangeSum(int bits) {
+		public IntFenwickTreeSum(int bits) {
 			partial = new int[1 << bits];
 		}
 
@@ -108,8 +152,8 @@ public class RangeQueries {
 			return sum;
 		}
 
-		public static IntFenwickTreeRangeSum newWithSize(int size) {
-			return new IntFenwickTreeRangeSum(Integer.SIZE - Integer.numberOfLeadingZeros(size));
+		public static IntFenwickTreeSum newWithSize(int size) {
+			return new IntFenwickTreeSum(Integer.SIZE - Integer.numberOfLeadingZeros(size));
 		}
 	}
 
@@ -242,11 +286,11 @@ public class RangeQueries {
 		public T get(int lowerInclusive, int upperInclusive) {
 			return this.root.getRange(lowerInclusive, upperInclusive);
 		}
-		
+
 		public static interface Merger<T> {
 			public T merge(T a, T b);
 		}
-		
+
 		public static abstract class NullMerger<T> implements Merger<T> {
 			@Override
 			public T merge(T a, T b) {
@@ -261,7 +305,7 @@ public class RangeQueries {
 				}
 				return mergeNonNull(a, b);
 			}
-			
+
 			public abstract T mergeNonNull(T a, T b);
 		}
 
@@ -325,7 +369,7 @@ public class RangeQueries {
 					return merger.merge(this.left.getRange(lower, upper), this.rite.getRange(lower, upper));
 				}
 			}
-			
+
 			private T getValueOrDefault() {
 				if (val != null) {
 					return val;
@@ -663,7 +707,7 @@ public class RangeQueries {
 		public long get(long lo, long hi) {
 			return root.get(lo, hi);
 		}
-		
+
 		public static class AVLTreeNode {
 			private long key;
 			private long val;
@@ -847,11 +891,11 @@ public class RangeQueries {
 	 */
 	public static class AVLSegmentTree<KT, VT> {
 		private AVLTreeNode root;
-		
+
 		private Comparator<KT> comparer;
 		private Merger<VT> merger;
 		private DefaultProvider<VT> defaultProvider;
-		
+
 		public AVLSegmentTree(KT initKey, Comparator<KT> comparer, Merger<VT> merger, DefaultProvider<VT> defaultProvider) {
 			this.root = new AVLTreeNode(initKey);
 			this.comparer = comparer;
@@ -920,7 +964,7 @@ public class RangeQueries {
 				if (curr == null) {
 					return defaultProvider.getDefault();
 				}
-				
+
 				VT ans = curr.getVal();
 				if (curr.left != null) {
 					ans = merger.merge(ans, curr.left.getSumGTE(lo));
@@ -945,7 +989,7 @@ public class RangeQueries {
 				sum = merger.merge(getVal(), merger.merge(getSum(left), getSum(right)));
 				return sum;
 			}
-			
+
 			private VT getVal() {
 				if (val == null) {
 					return defaultProvider.getDefault();
@@ -966,7 +1010,7 @@ public class RangeQueries {
 				}
 				return sum;
 			}
-			
+
 			private VT getSumGTE(KT k) {
 				AVLTreeNode curr = this;
 				VT sum = defaultProvider.getDefault();
@@ -1038,15 +1082,15 @@ public class RangeQueries {
 			pivot.update();
 			return pivot;
 		}
-		
+
 		public static interface Merger<T> {
 			public T merge(T a, T b);
 		}
-		
+
 		public static interface DefaultProvider<T> {
 			public T getDefault();
 		}
-		
+
 		/*
 		 * Helper class to generate a segment tree that does sum of long values, using long key.
 		 */
@@ -1074,7 +1118,7 @@ public class RangeQueries {
 					}
 				);
 			}
-			
+
 			public void increment(long k, long v) {
 				insert(k, get(k) + v);
 			}
@@ -1141,7 +1185,7 @@ public class RangeQueries {
 		private static class AVLTreeNode {
 			private PrimitiveKeyType key;
 			private PrimitiveValueType val;
-			private PrimitiveValueType sum;  // more of an accumulator than a true "sum"
+			private PrimitiveValueType sum;
 			private int ht;
 
 			private AVLTreeNode left;
