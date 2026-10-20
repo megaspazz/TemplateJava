@@ -298,7 +298,11 @@ public class CommonUtils {
 			return uniq;
 		}
 
-		public long size() {
+		public int size() {
+			return uniq;
+		}
+
+		public long totalCount() {
 			return total;
 		}
 
