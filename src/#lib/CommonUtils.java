@@ -98,6 +98,8 @@ public class CommonUtils {
 	/**
 	 * Keeps track of the top two elements inserted.
 	 * If `first` and `second` are initialized, `count` will only include elements that were strictly greater than the initial `second` value.
+	 * 
+	 * NOTE:  It doesn't work with Integer.MAX_VALUE.
 	 */
 	public static class TopTwoInt {
 		public int count;
@@ -140,6 +142,8 @@ public class CommonUtils {
 	/**
 	 * Keeps track of the top two elements inserted.
 	 * If `first` and `second` are initialized, `count` will only include elements that were strictly greater than the initial `second` value.
+	 * 
+	 * NOTE:  It doesn't work with Long.MIN_VALUE.
 	 */
 	public static class TopTwoLong {
 		public int count;
@@ -172,11 +176,69 @@ public class CommonUtils {
 			}
 			count = Math.min(2, count + 1);
 		}
+
+		@Override
+		public String toString() {
+			return "[" + first + ", " + second + "]";
+		}
 	}
 
 	/**
 	 * Keeps track of the bottom two elements inserted.
 	 * If `first` and `second` are initialized, `count` will only include elements that were strictly less than the initial `second` value.
+	 * 
+	 * NOTE:  It doesn't work with Integer.MAX_VALUE.
+	 */
+	public static class BottomTwoInt {
+		public int count;
+		public int first;
+		public int second;
+
+		public BottomTwoInt() {
+			this(Integer.MAX_VALUE);
+		}
+
+		public BottomTwoInt(int init) {
+			this(init, init);
+		}
+
+		public BottomTwoInt(int first, int second) {
+			this.first = Math.max(first, second);
+			this.second = Math.min(first, second);
+		}
+
+		public BottomTwoInt(int[] arr) {
+			this();
+			for (int x : arr) {
+				add(x);
+			}
+		}
+
+		public void add(int x) {
+			if (x > second) {
+				return;
+			}
+
+			if (x < first) {
+				second = first;
+				first = x;
+			} else {
+				second = x;
+			}
+			count = Math.min(2, count + 1);
+		}
+
+		@Override
+		public String toString() {
+			return "[" + first + ", " + second + "]";
+		}
+	}
+
+	/**
+	 * Keeps track of the bottom two elements inserted.
+	 * If `first` and `second` are initialized, `count` will only include elements that were strictly less than the initial `second` value.
+	 * 
+	 * NOTE:  It doesn't work with Long.MAX_VALUE.
 	 */
 	public static class BottomTwoLong {
 		public int count;
@@ -215,6 +277,11 @@ public class CommonUtils {
 				second = x;
 			}
 			count = Math.min(2, count + 1);
+		}
+
+		@Override
+		public String toString() {
+			return "[" + first + ", " + second + "]";
 		}
 	}
 
