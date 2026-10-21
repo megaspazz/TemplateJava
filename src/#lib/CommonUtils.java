@@ -522,4 +522,115 @@ public class CommonUtils {
 			insertionsIdx = 0;
 		}
 	}
+
+	/**
+	 * For a multi-set of (N) long values, it keeps (K) largest values on top and remaining (N - K) smallest values on bottom, with ability to balance on (K).
+	 * It keeps the total and sum of values in both the top and bottom.
+	 */
+	public static class SimpleHourglass {
+		public final CountMapInt top = new CountMapInt();
+		public final CountMapInt bot = new CountMapInt();
+
+		public int totalCount() {
+			return top.total + bot.total;
+		}
+
+		public void increment(long key) {
+			incrementPreferringTop(key);
+		}
+
+		public void incrementPreferringTop(long key) {
+			if (bot.isEmpty() || key > bot.lastKey()) {
+				top.increment(key);
+			} else {
+				bot.increment(key);
+			}
+		}
+
+		public void incrementPreferringBot(long key) {
+			if (top.isEmpty() || key < top.firstKey()) {
+				bot.increment(key);
+			} else {
+				top.increment(key);
+			}
+		}
+
+		public void decrement(long key) {
+			decrementTopFirst(key);
+		}
+
+		public void decrementTopFirst(long key) {
+			if (top.containsKey(key)) {
+				top.decrement(key);
+			} else {
+				bot.decrement(key);
+			}
+		}
+
+		public void decrementBotFirst(long key) {
+			if (bot.containsKey(key)) {
+				bot.decrement(key);
+			} else {
+				top.decrement(key);
+			}
+		}
+
+		public void balanceTop(int targetSize) {
+			balanceBot(Math.max(0, top.total + bot.total - targetSize));
+		}
+
+		public void balanceBot(int targetSize) {
+			while (bot.total < targetSize && !top.isEmpty()) {
+				Map.Entry<Long, Integer> lowestKvp = top.firstEntry();
+				long key = lowestKvp.getKey();
+				int val = lowestKvp.getValue();
+				int rem = Math.min(val, targetSize - bot.total);
+				top.decrement(key, rem);
+				bot.increment(key, rem);
+			}
+			while (bot.total > targetSize) {
+				Map.Entry<Long, Integer> highestKvp = bot.lastEntry();
+				long key = highestKvp.getKey();
+				int val = highestKvp.getValue();
+				int rem = Math.min(val, bot.total - targetSize);
+				bot.decrement(key, rem);
+				top.increment(key, rem);
+			}
+		}
+
+		public static class CountMapInt extends TreeMap<Long, Integer> {
+			private static final long serialVersionUID = -1501598139835601959L;
+
+			public int total;
+			public long sum;
+
+			public int getCount(Long k) {
+				return getOrDefault(k, 0);
+			}
+
+			public int decrement(Long k) {
+				return decrement(k, 1);
+			}
+
+			public int decrement(Long k, int v) {
+				return increment(k, -v);
+			}
+
+			public int increment(Long k) {
+				return increment(k, 1);
+			}
+
+			public int increment(Long k, int v) {
+				total += v;
+				sum += k * v;
+				int next = getCount(k) + v;
+				if (next == 0) {
+					remove(k);
+				} else {
+					put(k, next);
+				}
+				return next;
+			}
+		}
+	}
 }
