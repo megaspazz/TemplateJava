@@ -58,7 +58,7 @@ public class ArraysAndStrings {
 				int R = upperBound;
 				int M = lowerBound;
 				int p = lowerBound + RNG.nextInt(upperBound - lowerBound + 1);
-				
+
 				swap(A, p, L);
 				while (M < R) {
 					if (A[M + 1] < A[M]) {
@@ -66,6 +66,42 @@ public class ArraysAndStrings {
 						++L;
 						++M;
 					} else if (A[M + 1] > A[M]) {
+						swap(A, M + 1, R);
+						--R;
+					} else {
+						++M;
+					}
+				}
+				if (L <= k && k <= M) {
+					break;
+				}
+				if (k < L) {
+					upperBound = L - 1;
+				} else {
+					lowerBound = M + 1;
+				}
+			}
+			return A[k];
+		}
+
+		public static int get(int[] A, int k, IntComparator cmp) {
+			final int N = A.length;
+			int lowerBound = 0;
+			int upperBound = N - 1;
+			while (lowerBound < upperBound) {
+				int L = lowerBound;
+				int R = upperBound;
+				int M = lowerBound;
+				int p = lowerBound + RNG.nextInt(upperBound - lowerBound + 1);
+
+				swap(A, p, L);
+				while (M < R) {
+					int cmpResult = cmp.compare(A[M + 1], A[M]);
+					if (cmpResult < 0) {
+						swap(A, M + 1, L);
+						++L;
+						++M;
+					} else if (cmpResult > 0) {
 						swap(A, M + 1, R);
 						--R;
 					} else {
@@ -93,7 +129,7 @@ public class ArraysAndStrings {
 				int R = upperBound;
 				int M = lowerBound;
 				int p = lowerBound + RNG.nextInt(upperBound - lowerBound + 1);
-				
+
 				swap(A, p, L);
 				while (M < R) {
 					if (A[M + 1] < A[M]) {
@@ -101,6 +137,41 @@ public class ArraysAndStrings {
 						++L;
 						++M;
 					} else if (A[M + 1] > A[M]) {
+						swap(A, M + 1, R);
+						--R;
+					} else {
+						++M;
+					}
+				}
+				if (L <= k && k <= M) {
+					break;
+				}
+				if (k < L) {
+					upperBound = L - 1;
+				} else {
+					lowerBound = M + 1;
+				}
+			}
+			return A[k];
+		}
+
+		public static long getReversed(int[] A, int k) {
+			final int N = A.length;
+			int lowerBound = 0;
+			int upperBound = N - 1;
+			while (lowerBound < upperBound) {
+				int L = lowerBound;
+				int R = upperBound;
+				int M = lowerBound;
+				int p = lowerBound + RNG.nextInt(upperBound - lowerBound + 1);
+
+				swap(A, p, L);
+				while (M < R) {
+					if (A[M + 1] > A[M]) {
+						swap(A, M + 1, L);
+						++L;
+						++M;
+					} else if (A[M + 1] < A[M]) {
 						swap(A, M + 1, R);
 						--R;
 					} else {
@@ -128,7 +199,7 @@ public class ArraysAndStrings {
 				int R = upperBound;
 				int M = lowerBound;
 				int p = lowerBound + RNG.nextInt(upperBound - lowerBound + 1);
-				
+
 				swap(A, p, L);
 				while (M < R) {
 					if (A[M + 1] > A[M]) {
@@ -171,6 +242,10 @@ public class ArraysAndStrings {
 			A[i] = A[j];
 			A[j] = tmp;
 		}
+
+		public static interface IntComparator {
+			public int compare(int a, int b);
+		}
 	}
 
 	public static class Sort {
@@ -191,6 +266,38 @@ public class ArraysAndStrings {
 					int b = lw;
 					while (a < lw && b < segLen) {
 						if (buf[a] < buf[b]) {
+							A[p++] = buf[a++];
+						} else {
+							A[p++] = buf[b++];
+						}
+					}
+					if (a < lw) {
+						System.arraycopy(buf, a, A, p, lw - a);
+					} else {
+						System.arraycopy(buf, b, A, p, segLen - b);
+					}
+				}
+			}
+			return A;
+		}
+
+		public static int[] ints(int[] A, IntComparator cmp) {
+			final int N = A.length;
+
+			int[] buf = new int[N];
+			for (int lw = 1; lw < N; lw <<= 1) {
+				int w = lw << 1;
+				for (int i = 0; i + lw <= N; i += w) {
+					int k = Math.min(i + w, N);
+
+					int segLen = k - i;
+					System.arraycopy(A, i, buf, 0, segLen);
+
+					int p = i;
+					int a = 0;
+					int b = lw;
+					while (a < lw && b < segLen) {
+						if (cmp.compare(buf[a], buf[b]) <= 0) {
 							A[p++] = buf[a++];
 						} else {
 							A[p++] = buf[b++];
@@ -300,6 +407,10 @@ public class ArraysAndStrings {
 				}
 				return A;
 			}
+		}
+
+		public static interface IntComparator {
+			public int compare(int a, int b);
 		}
 	}
 
@@ -641,9 +752,9 @@ public class ArraysAndStrings {
 		}
 	}
 
-	private static class Shuffle {
+	public static class Shuffle {
 		private static final ThreadLocalRandom RNG = ThreadLocalRandom.current();
-		
+
 		public static int[] ints(int[] A) {
 			for (int i = A.length - 1; i > 0; --i) {
 				int j = RNG.nextInt(0, i + 1);
@@ -651,7 +762,7 @@ public class ArraysAndStrings {
 			}
 			return A;
 		}
-		
+
 		private static void swapInts(int[] A, int i, int j) {
 			int tmp = A[i];
 			A[i] = A[j];
