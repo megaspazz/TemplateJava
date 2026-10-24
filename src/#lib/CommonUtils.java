@@ -427,32 +427,42 @@ public class CommonUtils {
 	 * Instead of instantiating a new one, to re-use an existing one, just call the `clear()` method.
 	 */
 	public static class ReusableFixedIntToIntMap {
+		private final int offset;
+		private final int N;
 		private final int[] A;
 		private final boolean[] seen;
 		private final int[] insertions;
 		private int insertionsIdx = 0;
 
-		public ReusableFixedIntToIntMap(int N) {
+		public ReusableFixedIntToIntMap(int loInclusive, int hiExclusive) {
+			this.offset = loInclusive;
+			this.N = hiExclusive - loInclusive;
 			this.A = new int[N];
 			this.seen = new boolean[N];
 			this.insertions = new int[N];
 		}
 
-		public void put(int k, int v) {
-			A[k] = v;
-			seen[k] = true;
+		public ReusableFixedIntToIntMap(int N) {
+			this(0, N);
+		}
 
+		public void put(int k, int v) {
+			int i = getIndex(k);
+			A[i] = v;
+			seen[i] = true;
 			if (insertionsIdx < A.length) {
-				insertions[insertionsIdx++] = k;
+				insertions[insertionsIdx++] = i;
 			}
 		}
 
 		public boolean containsKey(int k) {
-			return seen[k];
+			int i = getIndex(k);
+			return seen[i];
 		}
 
 		public int get(int k) {
-			return A[k];
+			int i = getIndex(k);
+			return A[i];
 		}
 
 		public int getOrDefault(int k, int defaultValue) {
@@ -460,7 +470,7 @@ public class CommonUtils {
 		}
 
 		public void clear() {
-			if (insertionsIdx >= A.length) {
+			if (insertionsIdx >= N) {
 				Arrays.fill(seen, false);
 			} else {
 				for (int i = 0; i < insertionsIdx; ++i) {
@@ -469,12 +479,18 @@ public class CommonUtils {
 			}
 			insertionsIdx = 0;
 		}
+
+		private int getIndex(int k) {
+			return k - offset;
+		}
 	}
 
 	/**
 	 * Flat generic int-to-any map designed to be re-used across multiple test cases.
 	 * For example, initialize it as a static variable, or pass it around everywhere it's needed.
 	 * Instead of instantiating a new one, to re-use an existing one, just call the `clear()` method.
+	 * 
+	 * TODO:  Implement offset from ReusableFixedIntToIntMap.
 	 */
 	public static class ReusableFixedIntMap<T> {
 		private final T[] A;
