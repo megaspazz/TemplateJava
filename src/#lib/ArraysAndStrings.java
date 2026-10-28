@@ -709,13 +709,15 @@ public class ArraysAndStrings {
 		// Finds the right-most value that satisfies the IntCheck in the range [L, R).
 		// It will return L - 1 if nothing in the range satisfies the check.
 		public static int lastThat(int L, int R, IntCheck check) {
-			int firstValue = firstThat(L, R, new IntCheck() {
-				@Override
-				public boolean valid(int value) {
-					return !check.valid(value);
+			while (L < R) {
+				int M = (L >> 1) + (R >> 1) + (L & R & 1);
+				if (check.valid(M)) {
+					L = M + 1;
+				} else {
+					R = M;
 				}
-			});
-			return firstValue - 1;
+			}
+			return L - 1;
 		}
 
 		// Finds the left-most value that satisfies the LongCheck in the range [L, R).
@@ -731,16 +733,18 @@ public class ArraysAndStrings {
 			return L;
 		}
 
-		// Finds the right-most value that satisfies the IntCheck in the range [L, R).
+		// Finds the right-most value that satisfies the LongCheck in the range [L, R).
 		// It will return L - 1 if nothing in the range satisfies the check.
 		public static long lastThat(long L, long R, LongCheck check) {
-			long firstValue = firstThat(L, R, new LongCheck() {
-				@Override
-				public boolean valid(long value) {
-					return !check.valid(value);
+			while (L < R) {
+				long M = (L >> 1) + (R >> 1) + (L & R & 1);
+				if (check.valid(M)) {
+					L = M + 1;
+				} else {
+					R = M;
 				}
-			});
-			return firstValue - 1;
+			}
+			return L - 1;
 		}
 
 		public static interface LongCheck {
