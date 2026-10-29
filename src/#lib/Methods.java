@@ -11,7 +11,7 @@ public class Methods {
 			for (T v : arr) {
 				cm.increment(v, 1);
 			}
-			
+
 			ArrayList<Freq<T>> freq = new ArrayList<>();
 			for (Map.Entry<T, Integer> kvp : cm.entrySet()) {
 				freq.add(new Freq<>(kvp.getKey(), kvp.getValue()));
@@ -1222,7 +1222,7 @@ public class Methods {
 			return ast.get(lo, hi);
 		}
 	}
-	
+
 	/*
 	 * AVLTreeRangeSum performs arbitrary-length range sums in O(log N) time.
 	 */
@@ -1291,7 +1291,7 @@ public class Methods {
 				if (curr == null) {
 					return 0;
 				}
-				
+
 				long ans = curr.val;
 				if (curr.left != null) {
 					ans += curr.left.getSumGTE(lo);
@@ -1372,7 +1372,7 @@ public class Methods {
 				}
 				return sum;
 			}
-			
+
 			private long getSumGTE(long k) {
 				AVLTreeNode curr = this;
 				long sum = 0;
@@ -1427,18 +1427,18 @@ public class Methods {
 			}
 		}
 	}
-	
+
 	/*
 	 * AVLSegmentTree does generic range operations in O(log N) time.
 	 * See AVLSegmentTree.LongSum for example usage.
 	 */
 	public static class AVLSegmentTree<KT, VT> {
 		private AVLTreeNode root;
-		
+
 		private Comparator<KT> comparer;
 		private Merger<VT> merger;
 		private DefaultProvider<VT> defaultProvider;
-		
+
 		public AVLSegmentTree(KT initKey, Comparator<KT> comparer, Merger<VT> merger, DefaultProvider<VT> defaultProvider) {
 			this.root = new AVLTreeNode(initKey);
 			this.comparer = comparer;
@@ -1497,7 +1497,7 @@ public class Methods {
 				if (curr == null) {
 					return defaultProvider.getDefault();
 				}
-				
+
 				VT ans = curr.getVal();
 				if (curr.left != null) {
 					ans = merger.merge(ans, curr.left.getSumGTE(lo));
@@ -1546,7 +1546,7 @@ public class Methods {
 				sum = merger.merge(getVal(), merger.merge(getSum(left), getSum(right)));
 				return sum;
 			}
-			
+
 			private VT getVal() {
 				if (val == null) {
 					return defaultProvider.getDefault();
@@ -1567,7 +1567,7 @@ public class Methods {
 				}
 				return sum;
 			}
-			
+
 			private VT getSumGTE(KT k) {
 				AVLTreeNode curr = this;
 				VT sum = defaultProvider.getDefault();
@@ -1639,15 +1639,15 @@ public class Methods {
 			pivot.update();
 			return pivot;
 		}
-		
+
 		public static interface Merger<T> {
 			public T merge(T a, T b);
 		}
-		
+
 		public static interface DefaultProvider<T> {
 			public T getDefault();
 		}
-		
+
 		/*
 		 * Helper class to generate a segment tree that does sum of long values, using long key.
 		 */
@@ -1675,7 +1675,7 @@ public class Methods {
 					}
 				);
 			}
-			
+
 			public void increment(long k, long v) {
 				insert(k, get(k) + v);
 			}
@@ -2725,7 +2725,6 @@ public class Methods {
 			return inversions;
 		}
 
-
 		// count number of inversions in the array a[] - do not overwrite a[]
 		public static <T extends Comparable<T>> long count(T[] a) {
 			T[] b = Arrays.copyOf(a, a.length);
@@ -2997,7 +2996,6 @@ public class Methods {
 				y[i] = -a[M][N + i];
 			return y;
 		}
-
 
 		// is the solution primal feasible?
 		private boolean isPrimalFeasible(double[][] A, double[] b) {
@@ -3602,7 +3600,7 @@ public class Methods {
 				val = v;
 				return;
 			}
-			
+
 			int xm = (xl + xr) >> 1;
 			int ym = (yl + yr) >> 1;
 			if (x <= xm) {
@@ -3886,7 +3884,7 @@ public class Methods {
 	public static class SubHash {
 		private int[] S;
 		private long[] H;
-		
+
 		public SubHash(int[] x) {
 			S = x;
 			H = new long[S.length + 1];
@@ -3918,11 +3916,11 @@ public class Methods {
 			}
 			return true;
 		}
-		
+
 		private static long modInverse(long a, long b) {
 			return BigInteger.valueOf(a).modInverse(BigInteger.valueOf(b)).longValue();
 		}
-		
+
 		private static final long MOD = 2147483647;
 		private static final long P = 60223;
 
@@ -3934,14 +3932,14 @@ public class Methods {
 			INV.add(1L);
 			INV.add(modInverse(P, MOD));
 		}
-		
+
 		private static long pow(int x) {
 			while (POW.size() <= x) {
 				POW.add(P * POW.get(POW.size() - 1) % MOD);
 			}
 			return POW.get(x);
 		}
-		
+
 		private static long inv(int x) {
 			while (INV.size() <= x) {
 				INV.add(INV.get(1) * INV.get(INV.size() - 1) % MOD);
@@ -4208,13 +4206,13 @@ public class Methods {
 	public static class LowestCommonAncestor {
 		private static final int INVALID_INDEX = -1;
 
-		private final IntDeque idx = new IntDeque();
+		private final int[] idx;
 		private final SparseTable tbl;
 
 		private final int N;
-		private final int[][] adj;
 		private final int root;
 
+		public final int[][] adj;
 		public final int[] level;
 
 		private LowestCommonAncestor(int[][] adj, int root) {
@@ -4225,7 +4223,9 @@ public class Methods {
 
 			setLevels();
 
-			int[] order = traverse().toArray();
+			int[][] results = traverse();
+			this.idx = results[0];
+			int[] order = results[1];
 
 			long[] levelIndex = new long[order.length];
 			for (int i = 0; i < order.length; ++i) {
@@ -4235,8 +4235,8 @@ public class Methods {
 		}
 
 		public int lowestCommonAncestor(int u, int v) {
-			int left = Math.min(idx.get(u), idx.get(v));
-			int rite = Math.max(idx.get(u), idx.get(v));
+			int left = Math.min(idx[u], idx[v]);
+			int rite = Math.max(idx[u], idx[v]);
 			return getIndex(tbl.getMin(left, rite));
 		}
 
@@ -4259,8 +4259,9 @@ public class Methods {
 			}
 		}
 
-		private IntDeque traverse() {
-			IntDeque lst = new IntDeque();
+		private int[][] traverse() {
+			IntDeque idxLst = new IntDeque();
+			IntDeque ordLst = new IntDeque();
 			IntDeque nodes = new IntDeque();
 			IntDeque indices = new IntDeque();
 			nodes.push(root);
@@ -4268,13 +4269,13 @@ public class Methods {
 			while (!nodes.isEmpty()) {
 				int u = nodes.pop();
 				int i = indices.pop();
-				while (u >= idx.size()) {
-					idx.add(INVALID_INDEX);
+				while (u >= idxLst.size()) {
+					idxLst.add(INVALID_INDEX);
 				}
-				if (idx.get(u) == INVALID_INDEX) {
-					idx.set(u, lst.size());
+				if (idxLst.get(u) == INVALID_INDEX) {
+					idxLst.set(u, ordLst.size());
 				}
-				lst.add(u);
+				ordLst.add(u);
 				if (i < adj[u].length) {
 					nodes.push(u);
 					indices.push(i + 1);
@@ -4283,7 +4284,10 @@ public class Methods {
 					++i;
 				}
 			}
-			return lst;
+			return new int[][] {
+				idxLst.toArray(),
+				ordLst.toArray(),
+			};
 		}
 
 		private static long makeLevelIndex(int level, int index) {
