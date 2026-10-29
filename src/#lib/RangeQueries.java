@@ -158,6 +158,80 @@ public class RangeQueries {
 	}
 
 	/**
+	 * Zero-indexed Fenwick Tree to compute generic range queries.
+	 * You need ceil(log2(N)) bits to store values N values from the range [0, N).
+	 * Commonly used bits values:
+	 *   - For N = 10^3, need bits = 10.
+	 *   - For N = 10^4, need bits = 14.
+	 *   - For N = 10^5, need bits = 17.
+	 *   - For N = 10^6, need bits = 20.
+	 * 
+	 * TODO:  Test with sum.  It's only been tested with XOR so far.
+	 */
+	public static class GenericIntFenwickTree {
+		private int[] partial;
+
+		// Implement the merge function.
+		public int merge(int a, int b) {
+			throw new UnsupportedOperationException("Not implemented yet.");
+
+			// Example implementation for sum.
+			// return a + b;
+		}
+
+		// Implement the unmerge function.
+		public int unmerge(int a, int b) {
+			throw new UnsupportedOperationException("Not implemented yet.");
+
+			// Example implementation for sum.
+			// return a - b;
+		}
+
+		public GenericIntFenwickTree(int bits) {
+			partial = new int[1 << bits];
+		}
+
+		public void insert(int index, int value) {
+			int delta = unmerge(value, get(index, index));
+			increment(index, delta);
+		}
+
+		public void increment(int index, int value) {
+			int curr = index;
+			while (curr < partial.length) {
+				partial[curr] = merge(partial[curr], value);
+				curr += Integer.lowestOneBit(~curr);
+			}
+		}
+
+		public int get(int index) {
+			return get(index, index);
+		}
+
+		public int get(int loInclusive, int hiInclusive) {
+			int ans = getPrefix(hiInclusive);
+			if (loInclusive > 0) {
+				ans = unmerge(ans, getPrefix(loInclusive - 1));
+			}
+			return ans;
+		}
+
+		private int getPrefix(int hiInclusive) {
+			int ans = 0;
+			int curr = hiInclusive;
+			while (curr >= 0) {
+				ans = merge(ans, partial[curr]);
+				curr -= Integer.lowestOneBit(~curr);
+			}
+			return ans;
+		}
+
+		public static GenericIntFenwickTree newWithSize(int size) {
+			return new GenericIntFenwickTree(Integer.SIZE - Integer.numberOfLeadingZeros(size));
+		}
+	}
+
+	/**
 	 * Sparse table initializes in O(N log N) time, but performs queries in O(1) time.
 	 * Queries must be performed on non-empty ranges within the table's range of [0, n).
 	 * 
