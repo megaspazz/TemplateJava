@@ -369,27 +369,36 @@ public class Methods {
 	/**
 	 * Computes all the primes up to the specified number.
 	 */
-	public static Integer[] primesTo(int n) {
-		ArrayList<Integer> primes = new ArrayList<Integer>();
-
+	public static int[] primesTo(int n) {
 		boolean[] prime = new boolean[n + 1];
-		for (int i = 0; i < prime.length; i++)
+		for (int i = 0; i <= n; i++) {
 			prime[i] = true;
+		}
 
+		int primeCount = 0;
 		prime[0] = false;
 		prime[1] = false;
-		for (int i = 2; i < prime.length; i++) {
-			if (prime[i]) {
-				primes.add(i);
-				if ((long) i * i <= n) {
-					for (int j = i * i; j < prime.length; j += i) {
-						prime[j] = false;
-					}
-				}
+		for (int i = 2; i <= n; i++) {
+			if (!prime[i]) {
+				continue;
+			}
+			++primeCount;
+			if (i > n / i) {
+				continue;
+			}
+			for (int j = i * i; j <= n; j += i) {
+				prime[j] = false;
 			}
 		}
 
-		return primes.toArray(new Integer[0]);
+		int[] primes = new int[primeCount];
+		int primesIdx = 0;
+		for (int i = 2; i <= n; ++i) {
+			if (prime[i]) {
+				primes[primesIdx++] = i;
+			}
+		}
+		return primes;
 	}
 
 	/**
