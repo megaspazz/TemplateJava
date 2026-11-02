@@ -649,4 +649,23 @@ public class CommonUtils {
 			}
 		}
 	}
+
+	/**
+	 * Helper methods for packing two int values into a single long value.
+	 * Useful for efficiently representing a class that would have two int values, particularly in sorting.
+	 * Copy the functions without the class definition for less verbose code.
+	 */
+	public static class IntPair {
+		public static long make(int first, int second) {
+			return ((long) first << 32) | second;
+		}
+
+		public static int first(long pair) {
+			return (int) (pair >>> 32);
+		}
+
+		public static int second(long pair) {
+			return (int) (pair & ~0);
+		}
+	}
 }
