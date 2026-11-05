@@ -4345,27 +4345,27 @@ public class Methods {
 			public long[][] table;
 
 			public SparseTable(long[] a) {
-				int n = a.length;
-				int p = Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(n - 1));
+				final int n = a.length;
+				final int p = Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(n - 1));
 
-				this.table = new long[n][p];
+				this.table = new long[p][n];
 
 				for (int i = 0; i < n; i++) {
-					this.table[i][0] = a[i];
+					table[0][i] = a[i];
 				}
-				for (int j = 1; j < p; j++) {
+				for (int b = 1; b < p; b++) {
 					for (int i = 0; i < n; i++) {
-						int off = (1 << (j - 1));
-						long next = (i + off >= n) ? Long.MAX_VALUE : this.table[i + off][j - 1];
-						this.table[i][j] = Math.min(this.table[i][j - 1], next);
+						int off = (1 << (b - 1));
+						long next = (i + off >= n) ? Long.MAX_VALUE : this.table[b - 1][i + off];
+						table[b][i] = Math.min(table[b - 1][i], next);
 					}
 				}
 			}
 
 			public long getMin(int lower, int upper) {
-				int k = 31 - Integer.numberOfLeadingZeros(upper - lower + 1);
-				int off = (1 << k);
-				return Math.min(this.table[lower][k], this.table[upper - off + 1][k]);
+				int b = 31 - Integer.numberOfLeadingZeros(upper - lower + 1);
+				int off = (1 << b);
+				return Math.min(this.table[b][lower], this.table[b][upper - off + 1]);
 			}
 		}
 
