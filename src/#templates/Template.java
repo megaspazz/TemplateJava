@@ -164,12 +164,12 @@ public class Template {
 			return arr;
 		}
 
-		public void nextIntArrays(int n, int[]... arrs) {
-			nextIntArrays(n, 0, arrs);
+		public void nextIntArrays(int[]... arrs) {
+			nextIntArrays(0, arrs);
 		}
 
-		public void nextIntArrays(int n, int off, int[]... arrs) {
-			for (int i = 0; i < n; ++i) {
+		public void nextIntArrays(int off, int[]... arrs) {
+			for (int i = off; i < arrs[0].length; ++i) {
 				for (int j = 0; j < arrs.length; ++j) {
 					arrs[j][i + off] = nextInt();
 				}
