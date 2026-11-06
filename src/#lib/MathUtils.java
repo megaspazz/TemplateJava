@@ -71,7 +71,7 @@ public class MathUtils {
 	 */
 	public static int gcd(int a, int b) {
 		while (b != 0) {
-			long r = a % b;
+			int r = a % b;
 			a = b;
 			b = r;
 		}
@@ -324,7 +324,7 @@ public class MathUtils {
 			}
 			return x;
 		}
-		
+
 		/**
 		 * Computes the value of (b ^ e) % MOD.
 		 */
@@ -414,7 +414,7 @@ public class MathUtils {
 		}
 		return ans;
 	}
-	
+
 	/**
 	 * Represent fractions in the form: n / d.
 	 * 
