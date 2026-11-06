@@ -2,6 +2,8 @@ import java.io.*;
 import java.util.*;
 
 public class Template {
+	public static void init() {}
+
 	public static void solveCase(FastIO io, int testCase) {
 		
 	}
@@ -310,6 +312,7 @@ public class Template {
 	}
 
 	private static void runSolution(FastIO io) {
+		init();
 		solve(io);
 		io.flush();
 	}
