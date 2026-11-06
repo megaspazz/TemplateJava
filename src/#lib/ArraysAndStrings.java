@@ -155,7 +155,7 @@ public class ArraysAndStrings {
 			return A[k];
 		}
 
-		public static long getReversed(int[] A, int k) {
+		public static int getReversed(int[] A, int k) {
 			final int N = A.length;
 			int lowerBound = 0;
 			int upperBound = N - 1;
