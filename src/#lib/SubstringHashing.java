@@ -169,30 +169,6 @@ public class SubstringHashing {
 			long r = (x & P) + (x >> E);
 			return r >= P ? r - P : r;
 		}
-
-		/**
-		 * Computes the value of (b ^ e) % mod.
-		 */
-		private static long modPow(long b, long e) {
-			long p = b;
-			long ans = 1;
-			while (e > 0) {
-				if ((e & 1) == 1) {
-					ans = mersenneMod(ans * p);
-				}
-				p = mersenneMod(p * p);
-				e >>= 1;
-			}
-			return ans;
-		}
-
-		/**
-		 * Computes the modular inverse, such that: ak % MOD = 1, for some k.
-		 * See this page for details:  http://rosettacode.org/wiki/Modular_inverse
-		 */
-		public static long modInverse(long a) {
-			return modPow(a, P - 2);
-		}
 	}
 
 	/**
