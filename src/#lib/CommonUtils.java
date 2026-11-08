@@ -361,6 +361,10 @@ public class CommonUtils {
 			this.updates = new int[N];
 		}
 
+		public boolean isEmpty() {
+			return size() == 0;
+		}
+
 		public int uniqueCount() {
 			return uniq;
 		}
@@ -381,10 +385,6 @@ public class CommonUtils {
 			increment(k, -1);
 		}
 
-		public long getCount(int k) {
-			return count[getIndex(k)];
-		}
-
 		public void increment(int k, long v) {
 			final int key = getIndex(k);
 
@@ -400,6 +400,10 @@ public class CommonUtils {
 			} else if (updatesIdx < N) {
 				updates[updatesIdx++] = key;
 			}
+		}
+
+		public long getCount(int k) {
+			return count[getIndex(k)];
 		}
 
 		public void clear() {
