@@ -1,6 +1,112 @@
 import java.util.*;
 
 public class Graphs {
+	public static class GraphBuilder {
+		private final IntList[] adjLists;
+
+		public GraphBuilder(int numNodes) {
+			this.adjLists = new IntList[numNodes];
+
+			for (int i = 0; i < numNodes; ++i) {
+				adjLists[i] = new IntList();
+			}
+		}
+
+		public void addDirectedEdge(int from, int to) {
+			adjLists[from].add(to);
+		}
+
+		public void addUndirectedEdge(int from, int to) {
+			addDirectedEdge(from, to);
+			addDirectedEdge(to, from);
+		}
+
+		public int[][] getAdjacencyMatrix() {
+			final int N = adjLists.length;
+
+			int[][] adj = new int[N][];
+			for (int i = 0; i < N; ++i) {
+				adj[i] = adjLists[i].toArray();
+			}
+			return adj;
+		}
+
+		public int[][] getAdjacencyMatrix(int root) {
+			int[][] adj = new int[adjLists.length][];
+			IntList q = new IntList();
+			q.add(root);
+			q.add(-1);
+			int qi = 0;
+			while (qi < q.size()) {
+				int u = q.get(qi++);
+				int p = q.get(qi++);
+				adj[u] = adjLists[u].toArrayRemovingValue(p);
+				for (int v : adj[u]) {
+					q.add(v);
+					q.add(u);
+				}
+			}
+			return adj;
+		}
+
+		private static class IntList {
+			public int[] arr;
+			public int pos;
+
+			public IntList(int capacity) {
+				this.arr = new int[capacity];
+			}
+
+			public IntList() {
+				this(2);
+			}
+
+			public void add(int x) {
+				if (pos >= arr.length) {
+					resize(arr.length << 1);
+				}
+				arr[pos++] = x;
+			}
+
+			public int get(int i) {
+				return arr[i];
+			}
+
+			public int size() {
+				return pos;
+			}
+
+			public int[] toArray() {
+				return Arrays.copyOf(arr, pos);
+			}
+
+			public int indexOf(int x) {
+				for (int i = 0; i < pos; ++i) {
+					if (arr[i] == x) {
+						return i;
+					}
+				}
+				return -1;
+			}
+
+			public int[] toArrayRemovingValue(int x) {
+				int idx = indexOf(x);
+				if (idx < 0 || idx >= pos) {
+					return toArray();
+				}
+
+				int[] ans = new int[pos - 1];
+				System.arraycopy(arr, 0, ans, 0, idx);
+				System.arraycopy(arr, idx + 1, ans, idx, pos - idx - 1);
+				return ans;
+			}
+
+			private void resize(int newCapacity) {
+				arr = Arrays.copyOf(arr, newCapacity);
+			}
+		}
+	}
+
 	/**
 	 * Finds an Eulerian path in a graph, if one exists.
 	 */
@@ -15,7 +121,7 @@ public class Graphs {
 	public static class EulerianPath {
 		public static int[] getNodeOrder(Graph g) {
 			ArrayDeque<Node> toProcess = new ArrayDeque<>();
-			
+
 			final int N = g.nodes.length;
 			int[] indegRem = new int[g.nodes.length];
 			int[] selfLoops = new int[N];
@@ -140,33 +246,33 @@ public class Graphs {
 	 */
 	public static class Dijkstras {
 		private static final long INF = Long.MAX_VALUE;
-		
+
 		public static class Graph {
 			private Node[] nodes;
-			
+
 			public Graph(int numNodes) {
 				this.nodes = new Node[numNodes];
 				for (int i = 0; i < numNodes; ++i) {
 					this.nodes[i] = new Node();
 				}
 			}
-			
+
 			public void addDirectedEdge(int u, int v, long w) {
 				nodes[u].edges.add(new Edge(v, w));
 			}
-			
+
 			public void addUndirectedEdge(int u, int v, long w) {
 				addDirectedEdge(u, v, w);
 				addDirectedEdge(v, u, w);
 			}
 		}
-		
+
 		public static long[] distFrom(Graph g, int start) {
 			final int N = g.nodes.length;
 
 			long[] dist = new long[N];
 			Arrays.fill(dist, Long.MAX_VALUE);
-			
+
 			PriorityQueue<PQE> pq = new PriorityQueue<>();
 			pq.offer(new PQE(start, 0));
 			while (!pq.isEmpty()) {
@@ -186,7 +292,7 @@ public class Graphs {
 			}
 			return dist;
 		}
-		
+
 		private static class PQE implements Comparable<PQE> {
 			public int nodeId;
 			public long dist;
