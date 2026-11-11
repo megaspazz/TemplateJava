@@ -185,7 +185,7 @@ public class MathUtils {
 			return add(a, MOD - b);
 		}
 
-		private static long normalize(long x) {
+		public static long normalize(long x) {
 			if (x <= -MOD || x >= MOD) {
 				x %= MOD;
 			}
