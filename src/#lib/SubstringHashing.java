@@ -1,5 +1,8 @@
 import java.util.concurrent.*;
 
+// TODO:  Fix non-Mersenne constructors to normalize inputs.
+// TODO:  Fix Mersenne constructors to handle negative values.
+
 public class SubstringHashing {
 	/**
 	 * Computes a polynomial hash to do fast equality checks.
@@ -337,76 +340,112 @@ public class SubstringHashing {
 	 */
 	public static class SubHashMersenne {
 		private static final int E = 31;
-		private static final long P = (1L << E) - 1;
-		private static final long K = ThreadLocalRandom.current().nextLong(2, P - 1);
+		private static final int P = (1 << E) - 1;
+		private static final long K = ThreadLocalRandom.current().nextInt(2, P - 1);
 
 		private static final int MAX_LEN = 2_000_002;
 
 		private static int UPTO = 0;
-		private static long[] POW = new long[MAX_LEN];
+		private static int[] POW = new int[MAX_LEN];
 		static {
 			POW[0] = 1;
 		}
 
 		private static void loadPows(int upper) {
 			for (int i = UPTO + 1; i <= upper; ++i) {
-				POW[i] = mersenneMod(POW[i - 1] * K);
+				POW[i] = mersenneMod(K * POW[i - 1]);
 			}
 			UPTO = Math.max(UPTO, upper);
 		}
 
-		private final long[] S;
-		private final long[] H;
+		private final int[] S;
+		private final int[] H;
 
-		public SubHashMersenne(long[] x) {
-			loadPows(x.length);
+		public SubHashMersenne(int[] x, boolean normalize) {
+			final int N = x.length;
 
-			this.S = x.clone();
-			this.H = new long[S.length + 1];
-			for (int i = 0; i < S.length; ++i) {
-				H[i + 1] = mersenneMod(mersenneMod(H[i] * K) + S[i]);
+			loadPows(N);
+
+			this.S = normalize ? toIntArray(x) : x;
+			this.H = new int[N + 1];
+			for (int i = 0; i < N; ++i) {
+				S[i] = mersenneMod(x[i]);
+				H[i + 1] = mersenneMod(K * H[i] + S[i]);
 			}
 		}
 
 		public SubHashMersenne(int[] x) {
-			this(toLongArray(x));
+			this(toIntArray(x), false);
+		}
+
+		public SubHashMersenne(long[] x) {
+			this(toIntArray(x), false);
 		}
 
 		public SubHashMersenne(char[] x) {
-			this(toLongArray(x));
+			this(toIntArray(x), false);
 		}
 
 		public SubHashMersenne(String x) {
-			this(x.toCharArray());
+			this(toIntArray(x), false);
+		}
+
+		private static int[] toIntArray(int[] x) {
+			final int N = x.length;
+
+			int[] arr = new int[N];
+			for (int i = 0; i < N; ++i) {
+				arr[i] = mersenneMod(x[i]);
+			}
+			return arr;
+		}
+
+		private static int[] toIntArray(long[] x) {
+			final int N = x.length;
+
+			int[] arr = new int[N];
+			for (int i = 0; i < N; ++i) {
+				arr[i] = mersenneMod(x[i]);
+			}
+			return arr;
+		}
+
+		private static int[] toIntArray(char[] x) {
+			final int N = x.length;
+
+			int[] arr = new int[N];
+			for (int i = 0; i < N; ++i) {
+				arr[i] = x[i];
+			}
+			return arr;
+		}
+
+		private static int[] toIntArray(String x) {
+			final int N = x.length();
+
+			int[] arr = new int[N];
+			for (int i = 0; i < N; ++i) {
+				arr[i] = x.charAt(i);
+			}
+			return arr;
 		}
 
 		public long get(int loInclusive, int hiExclusive) {
-			return mersenneMod(H[hiExclusive] - mersenneMod(H[loInclusive] * POW[hiExclusive - loInclusive]) + P);
+			return mersenneMod(H[hiExclusive] - mersenneMod((long) H[loInclusive] * POW[hiExclusive - loInclusive]) + P);
 		}
 
 		public int length() {
 			return S.length;
 		}
 
-		private static long[] toLongArray(char[] x) {
-			long[] arr = new long[x.length];
-			for (int i = 0; i < x.length; ++i) {
-				arr[i] = x[i];
-			}
-			return arr;
-		}
-
-		private static long[] toLongArray(int[] x) {
-			long[] arr = new long[x.length];
-			for (int i = 0; i < x.length; ++i) {
-				arr[i] = x[i];
-			}
-			return arr;
-		}
-
-		private static long mersenneMod(long x) {
-			long r = (x & P) + (x >> E);
+		private static int mersenneMod(int x) {
+			int r = (x & P) + (x >>> E);
 			return r >= P ? r - P : r;
+		}
+
+		private static int mersenneMod(long x) {
+			long r = (x & P) + (x >>> E);
+			return (int) (r >= P ? r - P : r);
 		}
 	}
 
@@ -417,56 +456,66 @@ public class SubstringHashing {
 	 */
 	public static class SubHashMersenneTwo {
 		private static final int E = 31;
-		private static final long P = (1L << E) - 1;
-		private static final long K = ThreadLocalRandom.current().nextLong(2, P - 1);
+		private static final int P = (1 << E) - 1;
+		private static final long KA = ThreadLocalRandom.current().nextInt(2, P - 1);
+		private static final long KB = ThreadLocalRandom.current().nextInt(2, P - 1);
 
 		private static final int MAX_LEN = 2_000_002;
 
 		private static int UPTO = 0;
-		private static long[] POW = new long[MAX_LEN];
+		private static int[] POW_A = new int[MAX_LEN];
+		private static int[] POW_B = new int[MAX_LEN];
 		static {
-			POW[0] = 1;
+			POW_A[0] = POW_B[0] = 1;
 		}
 
 		private static void loadPows(int upper) {
 			for (int i = UPTO + 1; i <= upper; ++i) {
-				POW[i] = mersenneMod(POW[i - 1] * K);
+				POW_A[i] = mersenneMod(KA * POW_A[i - 1]);
+				POW_B[i] = mersenneMod(KB * POW_B[i - 1]);
 			}
 			UPTO = Math.max(UPTO, upper);
 		}
 
-		private final long[] S;
-		private final long[] HA;
-		private final long[] HB;
+		private final int[] S;
+		private final int[] HA;
+		private final int[] HB;
 
-		public SubHashMersenneTwo(long[] x) {
-			loadPows(x.length);
+		public SubHashMersenneTwo(int[] x, boolean normalize) {
+			final int N = x.length;
 
-			this.S = x.clone();
-			this.HA = new long[S.length + 1];
-			this.HB = new long[S.length + 1];
-			for (int i = 0; i < S.length; ++i) {
-				HA[i + 1] = mersenneMod(mersenneMod(HA[i] * K) + S[i]);
-				HB[i + 1] = mersenneMod(mersenneMod(HB[i] * K) + S[i]);
+			loadPows(N);
+
+			this.S = normalize ? toIntArray(x) : x;
+			this.HA = new int[N + 1];
+			this.HB = new int[N + 1];
+			for (int i = 0; i < N; ++i) {
+				S[i] = mersenneMod(x[i]);
+				HA[i + 1] = mersenneMod(KA * HA[i] + S[i]);
+				HB[i + 1] = mersenneMod(KB * HB[i] + S[i]);
 			}
 		}
 
 		public SubHashMersenneTwo(int[] x) {
-			this(toLongArray(x));
+			this(toIntArray(x), false);
+		}
+
+		public SubHashMersenneTwo(long[] x) {
+			this(toIntArray(x), false);
 		}
 
 		public SubHashMersenneTwo(char[] x) {
-			this(toLongArray(x));
+			this(toIntArray(x), false);
 		}
 
 		public SubHashMersenneTwo(String x) {
-			this(x.toCharArray());
+			this(toIntArray(x), false);
 		}
 
 		public long get(int loInclusive, int hiExclusive) {
 			int shiftPow = hiExclusive - loInclusive;
-			long hashA = mersenneMod(HA[hiExclusive] - mersenneMod(HA[loInclusive] * POW[shiftPow]) + P);
-			long hashB = mersenneMod(HB[hiExclusive] - mersenneMod(HB[loInclusive] * POW[shiftPow]) + P);
+			long hashA = mersenneMod(HA[hiExclusive] - mersenneMod((long) HA[loInclusive] * POW_A[shiftPow]) + P);
+			int hashB = mersenneMod(HB[hiExclusive] - mersenneMod((long) HB[loInclusive] * POW_B[shiftPow]) + P);
 			return hashA << 32 | hashB;
 		}
 
@@ -474,25 +523,54 @@ public class SubstringHashing {
 			return S.length;
 		}
 
-		private static long[] toLongArray(char[] x) {
-			long[] arr = new long[x.length];
-			for (int i = 0; i < x.length; ++i) {
+		private static int[] toIntArray(int[] x) {
+			final int N = x.length;
+
+			int[] arr = new int[N];
+			for (int i = 0; i < N; ++i) {
+				arr[i] = mersenneMod(x[i]);
+			}
+			return arr;
+		}
+
+		private static int[] toIntArray(long[] x) {
+			final int N = x.length;
+
+			int[] arr = new int[N];
+			for (int i = 0; i < N; ++i) {
+				arr[i] = mersenneMod(x[i]);
+			}
+			return arr;
+		}
+
+		private static int[] toIntArray(char[] x) {
+			final int N = x.length;
+
+			int[] arr = new int[N];
+			for (int i = 0; i < N; ++i) {
 				arr[i] = x[i];
 			}
 			return arr;
 		}
 
-		private static long[] toLongArray(int[] x) {
-			long[] arr = new long[x.length];
-			for (int i = 0; i < x.length; ++i) {
-				arr[i] = x[i];
+		private static int[] toIntArray(String x) {
+			final int N = x.length();
+
+			int[] arr = new int[N];
+			for (int i = 0; i < N; ++i) {
+				arr[i] = x.charAt(i);
 			}
 			return arr;
 		}
 
-		private static long mersenneMod(long x) {
-			long r = (x & P) + (x >> E);
+		private static int mersenneMod(int x) {
+			int r = (x & P) + (x >>> E);
 			return r >= P ? r - P : r;
+		}
+
+		private static int mersenneMod(long x) {
+			long r = (x & P) + (x >>> E);
+			return (int) (r >= P ? r - P : r);
 		}
 	}
 
@@ -599,7 +677,7 @@ public class SubstringHashing {
 		private static final int HASHES = 4;
 
 		private static final int E = 31;
-		private static final long P = (1L << E) - 1;
+		private static final int P = (1 << E) - 1;
 
 		private static final long[] K = new long[HASHES];
 		static {
@@ -609,7 +687,7 @@ public class SubstringHashing {
 		}
 
 		private static int UPTO = 0;
-		private static long[][] POW = new long[HASHES][MAX_LEN + 1];
+		private static int[][] POW = new int[HASHES][MAX_LEN + 1];
 		static {
 			for (int j = 0; j < HASHES; ++j) {
 				POW[j][0] = 1;
@@ -625,44 +703,44 @@ public class SubstringHashing {
 			UPTO = Math.max(UPTO, upper);
 		}
 
-		private final long[] S;
-		private final long[][] H;
+		private final int[] S;
+		private final int[][] H;
 
-		public SubHashMersenneMulti(long[] x, boolean copyInput) {
+		public SubHashMersenneMulti(int[] x, boolean normalize) {
 			final int N = x.length;
 
 			loadPows(N);
 
-			this.S = copyInput ? x.clone() : x;
-			this.H = new long[HASHES][N + 1];
+			this.S = normalize ? toIntArray(x) : x;
+			this.H = new int[HASHES][N + 1];
 			for (int j = 0; j < HASHES; ++j) {
 				for (int i = 0; i < N; ++i) {
-					H[j][i + 1] = add(mersenneMod(H[j][i] * K[j]), S[i]);
+					H[j][i + 1] = mersenneMod(H[j][i] * K[j] + S[i]);
 				}
 			}
 		}
 
-		public SubHashMersenneMulti(long[] x) {
-			this(x, true);
+		public SubHashMersenneMulti(int[] x) {
+			this(toIntArray(x), false);
 		}
 
-		public SubHashMersenneMulti(int[] x) {
-			this(toLongArray(x), false);
+		public SubHashMersenneMulti(long[] x) {
+			this(toIntArray(x), false);
 		}
 
 		public SubHashMersenneMulti(char[] x) {
-			this(toLongArray(x), false);
+			this(toIntArray(x), false);
 		}
 
 		public SubHashMersenneMulti(String x) {
-			this(toLongArray(x), false);
+			this(toIntArray(x), false);
 		}
 
 		public long[] get(int loInclusive, int hiExclusive) {
 			int shiftPow = hiExclusive - loInclusive;
 			long[] hash = new long[HASHES];
 			for (int j = 0; j < HASHES; ++j) {
-				hash[j] = subtract(H[j][hiExclusive], mersenneMod(H[j][loInclusive] * POW[j][shiftPow]));
+				hash[j] = subtract(H[j][hiExclusive], mersenneMod((long) H[j][loInclusive] * POW[j][shiftPow]));
 			}
 			return hash;
 		}
@@ -671,49 +749,59 @@ public class SubstringHashing {
 			return S.length;
 		}
 
-		private static long[] toLongArray(char[] x) {
+		private static int[] toIntArray(int[] x) {
 			final int N = x.length;
 
-			long[] arr = new long[N];
-			for (int i = 0; i < x.length; ++i) {
-				arr[i] = x[i];
+			int[] arr = new int[N];
+			for (int i = 0; i < N; ++i) {
+				arr[i] = mersenneMod(x[i]);
 			}
 			return arr;
 		}
 
-		private static long[] toLongArray(int[] x) {
+		private static int[] toIntArray(long[] x) {
 			final int N = x.length;
 
-			long[] arr = new long[N];
+			int[] arr = new int[N];
+			for (int i = 0; i < N; ++i) {
+				arr[i] = mersenneMod(x[i]);
+			}
+			return arr;
+		}
+
+		private static int[] toIntArray(char[] x) {
+			final int N = x.length;
+
+			int[] arr = new int[N];
 			for (int i = 0; i < N; ++i) {
 				arr[i] = x[i];
 			}
 			return arr;
 		}
 
-		private static long[] toLongArray(String x) {
+		private static int[] toIntArray(String x) {
 			final int N = x.length();
 
-			long[] arr = new long[N];
+			int[] arr = new int[N];
 			for (int i = 0; i < N; ++i) {
 				arr[i] = x.charAt(i);
 			}
 			return arr;
 		}
 
-		private static long add(long a, long b) {
-			long res = a + b;
-			return res >= P ? res - P : res;
-		}
-
-		private static long subtract(long a, long b) {
-			long res = a - b;
+		private static int subtract(int a, int b) {
+			int res = a - b;
 			return res < 0 ? res + P : res;
 		}
 
-		private static long mersenneMod(long x) {
-			long r = (x & P) + (x >> E);
+		private static int mersenneMod(int x) {
+			int r = (x & P) + (x >>> E);
 			return r >= P ? r - P : r;
+		}
+
+		private static int mersenneMod(long x) {
+			long r = (x & P) + (x >>> E);
+			return (int) (r >= P ? r - P : r);
 		}
 	}
 
