@@ -7,7 +7,7 @@ public class MathUtils {
 	/**
 	 * Pre-compute factorial function and mod-inverse of factorial function in linear time.
 	 */
-	private static final long[] F = new long[400001];
+	private static final long[] F = new long[400_001];
 	private static final long[] INV = new long[F.length];
 	private static final long[] FI = new long[F.length];
 	static {
@@ -28,6 +28,9 @@ public class MathUtils {
 	 * Requires pre-computing the factorial function and mod-inverse of factorial function.
 	 */
 	public static long C(int n, int k) {
+		if (n < k) {
+			return 0;
+		}
 		return F[n] * FI[k] % MOD * FI[n - k] % MOD;
 	}
 
